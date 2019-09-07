@@ -14,7 +14,7 @@ import (
 
 // Default polling interval for jobs termination.
 // (Defining as `var` rather than `const` allows tests to lower the interval.)
-var DEFAULT_WATCHER_POLLING_INTERVAL = 15000
+var DEFAULT_WATCHER_POLLING_INTERVAL = 15000 // 15000 毫秒 = 15 秒
 
 type Watcher struct {
 	srv     *JobServer
@@ -41,6 +41,8 @@ func (watcher *Watcher) Start() {
 	// Delay for some random number of milliseconds before starting to ensure that multiple
 	// instances of the jobserver  don't poll at a time too close to each other.
 	rand.Seed(time.Now().UTC().UnixNano())
+
+	// 随机等待 [0s, 15s] 一段时间
 	<-time.After(time.Duration(rand.Intn(watcher.pollingInterval)) * time.Millisecond)
 
 	defer func() {
@@ -50,9 +52,12 @@ func (watcher *Watcher) Start() {
 
 	for {
 		select {
+		// 监听退出信号
 		case <-watcher.stop:
 			mlog.Debug("Watcher: Received stop signal")
 			return
+
+		// 每 15 秒执行一次
 		case <-time.After(time.Duration(watcher.pollingInterval) * time.Millisecond):
 			watcher.PollAndNotify()
 		}
@@ -65,21 +70,31 @@ func (watcher *Watcher) Stop() {
 	<-watcher.stopped
 }
 
+
+
+// 1. 获取所有 PENDING 状态的 Jobs
+// 2. 遍历这些 Jobs，根据 Job 类型发送给对应的管道，交由对应的协程处理。
 func (watcher *Watcher) PollAndNotify() {
+
+	// 获取所有 PENDING 状态的 Jobs
 	jobs, err := watcher.srv.Store.Job().GetAllByStatus(model.JOB_STATUS_PENDING)
 	if err != nil {
 		mlog.Error(fmt.Sprintf("Error occurred getting all pending statuses: %v", err.Error()))
 		return
 	}
 
+	// 遍历这些 Jobs，根据 Job 类型发送给对应的管道，交由对应的协程处理。
 	for _, job := range jobs {
+
 		if job.Type == model.JOB_TYPE_DATA_RETENTION {
+
 			if watcher.workers.DataRetention != nil {
 				select {
 				case watcher.workers.DataRetention.JobChannel() <- *job:
 				default:
 				}
 			}
+
 		} else if job.Type == model.JOB_TYPE_MESSAGE_EXPORT {
 			if watcher.workers.MessageExport != nil {
 				select {

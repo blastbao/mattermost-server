@@ -11,11 +11,23 @@ import (
 	"github.com/blastbao/mattermost-server/store"
 )
 
+
+
+
+
 type JobServer struct {
+
+
 	ConfigService configservice.ConfigService
+
 	Store         store.Store
+
+
 	Workers       *Workers
+
+
 	Schedulers    *Schedulers
+
 
 	DataRetentionJob        ejobs.DataRetentionJobInterface
 	MessageExportJob        ejobs.MessageExportJobInterface

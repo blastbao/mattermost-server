@@ -11,6 +11,8 @@ import (
 )
 
 const (
+
+	// JOB 类型
 	JOB_TYPE_DATA_RETENTION                 = "data_retention"
 	JOB_TYPE_MESSAGE_EXPORT                 = "message_export"
 	JOB_TYPE_ELASTICSEARCH_POST_INDEXING    = "elasticsearch_post_indexing"
@@ -19,35 +21,40 @@ const (
 	JOB_TYPE_MIGRATIONS                     = "migrations"
 	JOB_TYPE_PLUGINS                        = "plugins"
 
-	JOB_STATUS_PENDING          = "pending"
-	JOB_STATUS_IN_PROGRESS      = "in_progress"
-	JOB_STATUS_SUCCESS          = "success"
-	JOB_STATUS_ERROR            = "error"
-	JOB_STATUS_CANCEL_REQUESTED = "cancel_requested"
-	JOB_STATUS_CANCELED         = "canceled"
+	// JOB 状态
+	JOB_STATUS_PENDING          = "pending"				//等待执行
+	JOB_STATUS_IN_PROGRESS      = "in_progress" 		//正在执行
+	JOB_STATUS_SUCCESS          = "success" 			//执行成功
+	JOB_STATUS_ERROR            = "error" 				//执行失败
+	JOB_STATUS_CANCEL_REQUESTED = "cancel_requested" 	//正在取消
+	JOB_STATUS_CANCELED         = "canceled" 			//已经取消
 )
 
+
 type Job struct {
-	Id             string            `json:"id"`
-	Type           string            `json:"type"`
-	Priority       int64             `json:"priority"`
-	CreateAt       int64             `json:"create_at"`
-	StartAt        int64             `json:"start_at"`
-	LastActivityAt int64             `json:"last_activity_at"`
-	Status         string            `json:"status"`
-	Progress       int64             `json:"progress"`
-	Data           map[string]string `json:"data"`
+	Id             string            `json:"id"`				//ID
+	Type           string            `json:"type"`				//类型
+	Priority       int64             `json:"priority"`			//优先级
+	CreateAt       int64             `json:"create_at"`			//创建时间
+	StartAt        int64             `json:"start_at"`			//开始时间
+	LastActivityAt int64             `json:"last_activity_at"`	//最近活跃时间
+	Status         string            `json:"status"`			//状态
+	Progress       int64             `json:"progress"`			//执行进度
+	Data           map[string]string `json:"data"` 				//附加数据
 }
 
 func (j *Job) IsValid() *AppError {
+	// ID 为 26 位长度字符串
 	if len(j.Id) != 26 {
 		return NewAppError("Job.IsValid", "model.job.is_valid.id.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
+	// 创建时间
 	if j.CreateAt == 0 {
 		return NewAppError("Job.IsValid", "model.job.is_valid.create_at.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
+	// 类型检查
 	switch j.Type {
 	case JOB_TYPE_DATA_RETENTION:
 	case JOB_TYPE_ELASTICSEARCH_POST_INDEXING:
@@ -60,6 +67,7 @@ func (j *Job) IsValid() *AppError {
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
+	// 状态检查
 	switch j.Status {
 	case JOB_STATUS_PENDING:
 	case JOB_STATUS_IN_PROGRESS:

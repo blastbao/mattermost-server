@@ -24,8 +24,12 @@ type WebSocketClient struct {
 	AuthToken          string          // The token used to open the WebSocket
 	Sequence           int64           // The ever-incrementing sequence attached to each WebSocket action
 	PingTimeoutChannel chan bool       // The channel used to signal ping timeouts
+
+	// inChan
 	EventChannel       chan *WebSocketEvent
+	// outChan
 	ResponseChannel    chan *WebSocketResponse
+
 	ListenError        *AppError
 	pingTimeoutTimer   *time.Timer
 }
@@ -39,6 +43,9 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 // NewWebSocketClientWithDialer constructs a new WebSocket client with convenience
 // methods for talking to the server using a custom dialer.
 func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken string) (*WebSocketClient, *AppError) {
+
+
+
 	conn, _, err := dialer.Dial(url+API_URL_SUFFIX+"/websocket", nil)
 	if err != nil {
 		return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -82,17 +89,23 @@ func (wsc *WebSocketClient) Connect() *AppError {
 }
 
 func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppError {
+
+
+	// 建立连接
 	var err error
 	wsc.Conn, _, err = dialer.Dial(wsc.ConnectUrl, nil)
 	if err != nil {
 		return NewAppError("Connect", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	// 配置 PingPong
 	wsc.configurePingHandling()
 
+	// 初始化消息读取/发送的管道
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
 	wsc.ResponseChannel = make(chan *WebSocketResponse, 100)
 
+	// 发送 auth 消息给对端（server）
 	wsc.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": wsc.AuthToken})
 
 	return nil
@@ -111,6 +124,8 @@ func (wsc *WebSocketClient) Listen() {
 		}()
 
 		for {
+
+			// 读取消息
 			var rawMsg json.RawMessage
 			var err error
 			if _, rawMsg, err = wsc.Conn.ReadMessage(); err != nil {
@@ -121,12 +136,14 @@ func (wsc *WebSocketClient) Listen() {
 				return
 			}
 
+			// 解析消息
 			var event WebSocketEvent
 			if err := json.Unmarshal(rawMsg, &event); err == nil && event.IsValid() {
 				wsc.EventChannel <- &event
 				continue
 			}
 
+			// 构造返回消息，写入响应管道
 			var response WebSocketResponse
 			if err := json.Unmarshal(rawMsg, &response); err == nil && response.IsValid() {
 				wsc.ResponseChannel <- &response
@@ -138,6 +155,8 @@ func (wsc *WebSocketClient) Listen() {
 }
 
 func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface{}) {
+
+	// 构造消息
 	req := &WebSocketRequest{}
 	req.Seq = wsc.Sequence
 	req.Action = action
@@ -145,7 +164,9 @@ func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface
 
 	wsc.Sequence++
 
+	// 将消息发送到网络连接 Conn 中
 	wsc.Conn.WriteJSON(req)
+
 }
 
 // UserTyping will push a user_typing event out to all connected users

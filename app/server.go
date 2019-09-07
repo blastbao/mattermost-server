@@ -50,11 +50,18 @@ type Server struct {
 	// from RootRouter only if the SiteURL contains a /subpath.
 	Router *mux.Router
 
+
+
 	Server      *http.Server
 	ListenAddr  *net.TCPAddr
 	RateLimiter *RateLimiter
 
+
+
 	didFinishListen chan struct{}
+
+
+
 
 
 	// 正在执行的 goroutine 计数
@@ -62,30 +69,50 @@ type Server struct {
 	// 正在执行的 goroutine 退出时会触发此管道信号
 	goroutineExitSignal chan struct{}
 
+
+
+
 	PluginsEnvironment     *plugin.Environment
 	PluginConfigListenerId string
 	PluginsLock            sync.RWMutex
 
+
 	EmailBatching    *EmailBatchingJob
 	EmailRateLimiter *throttled.GCRARateLimiter
+
+
 
 	Hubs                        []*Hub
 	HubsStopCheckingForDeadlock chan bool
 
+
+
+
 	PushNotificationsHub PushNotificationsHub
 
+
+	// 后台 jobs
 	runjobs bool
 	Jobs    *jobs.JobServer
 
+
+
 	clusterLeaderListeners sync.Map
+
+
 
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func()
 
+
+	// 时区
 	timezones *timezones.Timezones
 
+	// 存储
 	newStore func() store.Store
+
+
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
 	sessionCache            *utils.Cache
@@ -371,8 +398,11 @@ func (s *Server) Shutdown() error {
 	return nil
 }
 
-// Go creates a goroutine, but maintains a record of it to ensure that execution completes before
-// the server is shutdown.
+
+
+
+
+// Go creates a goroutine, but maintains a record of it to ensure that execution completes before the server is shutdown.
 func (s *Server) Go(f func()) {
 
 	// 增加正在执行的 goroutine 计数
@@ -385,7 +415,7 @@ func (s *Server) Go(f func()) {
 		// 减少正在执行的 goroutine 计数
 		atomic.AddInt32(&s.goroutineCount, -1)
 
-		// 发送退出信号
+		// 执行结束，发送退出信号
 		select {
 		case s.goroutineExitSignal <- struct{}{}:
 		default:
@@ -396,10 +426,14 @@ func (s *Server) Go(f func()) {
 
 // WaitForGoroutines blocks until all goroutines created by App.Go exit.
 func (s *Server) WaitForGoroutines() {
-	for atomic.LoadInt32(&s.goroutineCount) != 0 {
+	// 等待所有的后台 goroutine 退出
+	for atomic.LoadInt32(&s.goroutineCount) != 0 { // 如果还有 goroutine 再执行，就阻塞等待 goroutineExitSignal 信号。
 		<-s.goroutineExitSignal
 	}
 }
+
+
+
 
 var corsAllowedMethods = []string{
 	"POST",
@@ -428,6 +462,8 @@ func stripPort(hostport string) string {
 	}
 	return net.JoinHostPort(host, "443")
 }
+
+
 
 func (s *Server) Start() error {
 	mlog.Info("Starting Server...")
@@ -474,6 +510,8 @@ func (s *Server) Start() error {
 		return err
 	}
 
+
+	//
 	s.Server = &http.Server{
 		Handler:      handler,
 		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
@@ -490,12 +528,15 @@ func (s *Server) Start() error {
 		}
 	}
 
+
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
 		return err
 	}
 	s.ListenAddr = listener.Addr().(*net.TCPAddr)
+
+
 
 	mlog.Info(fmt.Sprintf("Server is listening on %v", listener.Addr().String()))
 
@@ -716,32 +757,43 @@ func (s *Server) StartElasticsearch() {
 		}
 	})
 
-	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-		if !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
-			s.Go(func() {
-				if err := s.Elasticsearch.Start(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
-		} else if *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
-			s.Go(func() {
-				if err := s.Elasticsearch.Stop(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
-		} else if *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionUrl != *newConfig.ElasticsearchSettings.ConnectionUrl || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
-			s.Go(func() {
-				if *oldConfig.ElasticsearchSettings.EnableIndexing {
-					if err := s.Elasticsearch.Stop(); err != nil {
-						mlog.Error(err.Error())
-					}
+	s.AddConfigListener(
+
+		func(oldConfig *model.Config, newConfig *model.Config) {
+
+			if !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
+
+				s.Go(func() {
 					if err := s.Elasticsearch.Start(); err != nil {
 						mlog.Error(err.Error())
 					}
-				}
-			})
-		}
-	})
+				})
+
+			} else if *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
+
+				s.Go(func() {
+					if err := s.Elasticsearch.Stop(); err != nil {
+						mlog.Error(err.Error())
+					}
+				})
+
+			} else if *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionUrl != *newConfig.ElasticsearchSettings.ConnectionUrl || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
+
+				s.Go(func() {
+					if *oldConfig.ElasticsearchSettings.EnableIndexing {
+						if err := s.Elasticsearch.Stop(); err != nil {
+							mlog.Error(err.Error())
+						}
+						if err := s.Elasticsearch.Start(); err != nil {
+							mlog.Error(err.Error())
+						}
+					}
+				})
+
+			}
+		},
+	)
+
 
 	s.AddLicenseListener(func() {
 		if s.License() != nil {

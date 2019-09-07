@@ -19,6 +19,8 @@ import (
 func TestWebSocket(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+
+	// 建立 ws 连接，发送 auth 信息。
 	WebSocketClient, err := th.CreateWebSocketClient()
 	if err != nil {
 		t.Fatal(err)
@@ -27,18 +29,22 @@ func TestWebSocket(t *testing.T) {
 
 	time.Sleep(300 * time.Millisecond)
 
+
 	// Test closing and reconnecting
 	WebSocketClient.Close()
 	if err := WebSocketClient.Connect(); err != nil {
 		t.Fatal(err)
 	}
 
+	// 开始消息读写
 	WebSocketClient.Listen()
 
+	//
 	time.Sleep(300 * time.Millisecond)
 	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
 		t.Fatal("should have responded OK to authentication challenge")
 	}
+
 
 	WebSocketClient.SendMessage("ping", nil)
 	time.Sleep(300 * time.Millisecond)
@@ -77,6 +83,9 @@ func TestWebSocket(t *testing.T) {
 		}
 	}
 }
+
+
+
 
 func TestWebSocketEvent(t *testing.T) {
 	th := Setup().InitBasic()

@@ -19,6 +19,8 @@ const (
 )
 
 func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+
+	// 创建 job 对象
 	job := model.Job{
 		Id:       model.NewId(),
 		Type:     jobType,
@@ -27,14 +29,17 @@ func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*mod
 		Data:     jobData,
 	}
 
+	// 参数检查
 	if err := job.IsValid(); err != nil {
 		return nil, err
 	}
 
+	// 保存 job 到 store 中
 	if _, err := srv.Store.Job().Save(&job); err != nil {
 		return nil, err
 	}
 
+	// 返回 job
 	return &job, nil
 }
 
@@ -42,6 +47,7 @@ func (srv *JobServer) GetJob(id string) (*model.Job, *model.AppError) {
 	return srv.Store.Job().Get(id)
 }
 
+//
 func (srv *JobServer) ClaimJob(job *model.Job) (bool, *model.AppError) {
 	return srv.Store.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS)
 }
@@ -50,6 +56,7 @@ func (srv *JobServer) SetJobProgress(job *model.Job, progress int64) *model.AppE
 	job.Status = model.JOB_STATUS_IN_PROGRESS
 	job.Progress = progress
 
+	// 更新 job 信息和状态
 	if _, err := srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); err != nil {
 		return err
 	}
@@ -57,6 +64,7 @@ func (srv *JobServer) SetJobProgress(job *model.Job, progress int64) *model.AppE
 }
 
 func (srv *JobServer) SetJobSuccess(job *model.Job) *model.AppError {
+	// 更新 job 状态
 	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_SUCCESS); err != nil {
 		return err
 	}
@@ -64,6 +72,7 @@ func (srv *JobServer) SetJobSuccess(job *model.Job) *model.AppError {
 }
 
 func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *model.AppError {
+
 	if jobError == nil {
 		_, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_ERROR)
 		return err
@@ -76,11 +85,13 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	}
 	job.Data["error"] = jobError.Message + " — " + jobError.DetailedError
 
+	// 更新 job 信息和状态
 	updated, err := srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS)
 	if err != nil {
 		return err
 	}
 
+	// 更新 job 信息和状态
 	if !updated {
 		updated, err = srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_CANCEL_REQUESTED)
 		if err != nil {
@@ -159,14 +170,19 @@ func GenerateNextStartDateTime(now time.Time, nextStartTime time.Time) *time.Tim
 	return &nextTime
 }
 
+// 检查是否存在 `类型为 jobType 且状态为 pending 的 job(s)`
 func (srv *JobServer) CheckForPendingJobsByType(jobType string) (bool, *model.AppError) {
+
+	// 获取类型为 jobType 的所有 pending 状态的 jobs 总数
 	count, err := srv.Store.Job().GetCountByStatusAndType(model.JOB_STATUS_PENDING, jobType)
 	if err != nil {
 		return false, err
 	}
+	// 判断是否非零
 	return count > 0, nil
 }
 
+//
 func (srv *JobServer) GetLastSuccessfulJobByType(jobType string) (*model.Job, *model.AppError) {
 	return srv.Store.Job().GetNewestJobByStatusAndType(model.JOB_STATUS_SUCCESS, jobType)
 }

@@ -11,10 +11,16 @@ import (
 	"github.com/blastbao/mattermost-server/services/configservice"
 )
 
+
+
 type Workers struct {
+
 	startOnce     sync.Once
+
 	ConfigService configservice.ConfigService
+
 	Watcher       *Watcher
+
 
 	DataRetention            model.Worker
 	MessageExport            model.Worker
@@ -28,9 +34,13 @@ type Workers struct {
 }
 
 func (srv *JobServer) InitWorkers() *Workers {
+
+
 	workers := &Workers{
 		ConfigService: srv.ConfigService,
 	}
+
+
 	workers.Watcher = srv.MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
 
 	if srv.DataRetentionJob != nil {
@@ -67,35 +77,45 @@ func (srv *JobServer) InitWorkers() *Workers {
 func (workers *Workers) Start() *Workers {
 	mlog.Info("Starting workers")
 
-	workers.startOnce.Do(func() {
+	// 启动不同类型的调度器
+	workers.startOnce.Do(func() { // 只执行一次
+
+		//
 		if workers.DataRetention != nil && (*workers.ConfigService.Config().DataRetentionSettings.EnableMessageDeletion || *workers.ConfigService.Config().DataRetentionSettings.EnableFileDeletion) {
 			go workers.DataRetention.Run()
 		}
 
+		//
 		if workers.MessageExport != nil && *workers.ConfigService.Config().MessageExportSettings.EnableExport {
 			go workers.MessageExport.Run()
 		}
 
+		//
 		if workers.ElasticsearchIndexing != nil && *workers.ConfigService.Config().ElasticsearchSettings.EnableIndexing {
 			go workers.ElasticsearchIndexing.Run()
 		}
 
+		//
 		if workers.ElasticsearchAggregation != nil && *workers.ConfigService.Config().ElasticsearchSettings.EnableIndexing {
 			go workers.ElasticsearchAggregation.Run()
 		}
 
+		//
 		if workers.LdapSync != nil && *workers.ConfigService.Config().LdapSettings.EnableSync {
 			go workers.LdapSync.Run()
 		}
 
+		//
 		if workers.Migrations != nil {
 			go workers.Migrations.Run()
 		}
 
+		//
 		if workers.Plugins != nil {
 			go workers.Plugins.Run()
 		}
 
+		//
 		go workers.Watcher.Start()
 	})
 
@@ -153,6 +173,9 @@ func (workers *Workers) Stop() *Workers {
 
 	workers.Watcher.Stop()
 
+
+
+	// 停止不同类型的调度器
 	if workers.DataRetention != nil && (*workers.ConfigService.Config().DataRetentionSettings.EnableMessageDeletion || *workers.ConfigService.Config().DataRetentionSettings.EnableFileDeletion) {
 		workers.DataRetention.Stop()
 	}

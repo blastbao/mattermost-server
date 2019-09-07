@@ -9,6 +9,10 @@ import (
 	"github.com/blastbao/mattermost-server/model"
 )
 
+
+
+
+
 type ElasticsearchInterface interface {
 	Start() *model.AppError
 	Stop() *model.AppError

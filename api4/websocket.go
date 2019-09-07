@@ -12,9 +12,6 @@ import (
 	"github.com/blastbao/mattermost-server/model"
 )
 
-
-
-
 func (api *API) InitWebSocket() {
 	api.BaseRoutes.ApiRoot.Handle("/websocket", api.ApiHandlerTrustRequester(connectWebSocket)).Methods("GET")
 }

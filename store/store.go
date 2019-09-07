@@ -493,18 +493,43 @@ type ReactionStore interface {
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError)
 }
 
+
+
+
+
 type JobStore interface {
+
+	// 保存
 	Save(job *model.Job) (*model.Job, *model.AppError)
+	// 更新 job 信息和状态（乐观锁）
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, *model.AppError)
+	// 更新状态
 	UpdateStatus(id string, status string) (*model.Job, *model.AppError)
+	// 更新状态（乐观锁）
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, *model.AppError)
+
+	// 根据 id 获取 job
 	Get(id string) (*model.Job, *model.AppError)
+
+	// 分页获取
 	GetAllPage(offset int, limit int) ([]*model.Job, *model.AppError)
+
+	// 根据 type 获取 job
 	GetAllByType(jobType string) ([]*model.Job, *model.AppError)
+
+	// 根据 type 分页获取 job
 	GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
+
+	// 根据 status 获取 job
 	GetAllByStatus(status string) ([]*model.Job, *model.AppError)
+
+	// 获取最新的 jobs
 	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, *model.AppError)
+
+	// 获取 jobs 数目
 	GetCountByStatusAndType(status string, jobType string) (int64, *model.AppError)
+
+	// 根据 id 删除 job
 	Delete(id string) (string, *model.AppError)
 }
 

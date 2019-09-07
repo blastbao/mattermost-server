@@ -17,27 +17,36 @@ import (
 	"github.com/blastbao/mattermost-server/utils"
 )
 
+
+
+// 通知类型
 type NotificationType string
 
-const NOTIFICATION_TYPE_CLEAR NotificationType = "clear"
+const NOTIFICATION_TYPE_CLEAR   NotificationType = "clear"
 const NOTIFICATION_TYPE_MESSAGE NotificationType = "message"
 
-const PUSH_NOTIFICATION_HUB_WORKERS = 1000
-const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER = 50
+const PUSH_NOTIFICATION_HUB_WORKERS 			= 1000  //
+const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER 	= 50
+
+
+
 
 type PushNotificationsHub struct {
-	Channels []chan PushNotification
+	Channels []chan PushNotification  // 每个 HUB_WORKER 对应一个消息推送管道，所以此数组大小为 1000。
 }
 
+
 type PushNotification struct {
-	id                 string
-	notificationType   NotificationType
-	currentSessionId   string
-	userId             string
-	channelId          string
+	id                 string 			// ID
+	notificationType   NotificationType // 通知类型
+	currentSessionId   string 			// sessionID
+	userId             string			// userID
+	channelId          string 			// channelID
+
 	post               *model.Post
 	user               *model.User
 	channel            *model.Channel
+
 	senderName         string
 	channelName        string
 	explicitMention    bool
@@ -45,6 +54,8 @@ type PushNotification struct {
 	replyToThreadType  string
 }
 
+
+// 根据 userID 的哈希值确定其属于哪个 Channel，返回该 Channel 对应的推送管道
 func (hub *PushNotificationsHub) GetGoChannelFromUserId(userId string) chan PushNotification {
 	h := fnv.New32a()
 	h.Write([]byte(userId))
@@ -52,25 +63,40 @@ func (hub *PushNotificationsHub) GetGoChannelFromUserId(userId string) chan Push
 	return hub.Channels[chanIdx]
 }
 
-func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
-	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.AppError {
 
+//
+func (a *App) sendPushNotificationSync(	post *model.Post,
+										user *model.User,
+										channel *model.Channel,
+										channelName string,
+										senderName string,
+										explicitMention bool,
+										channelWideMention bool,
+										replyToThreadType string ) *model.AppError {
+
+	// 获取 userID 的所有 sessions
 	sessions, err := a.getMobileAppSessions(user.Id)
 	if err != nil {
 		return err
 	}
 
+	// 构造推送消息
 	msg := a.BuildPushNotificationMessage(post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 
+	// 遍历每个 session ，逐个发送消息
 	for _, session := range sessions {
+
+		// 过期检查
 		if session.IsExpired() {
 			continue
 		}
 
+		// 复制消息，填充 deviceID 和 AckID
 		tmpMessage := model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 		tmpMessage.AckId = model.NewId()
 
+		// 发送消息
 		err := a.sendToPushProxy(*tmpMessage, session)
 		if err != nil {
 			a.NotificationsLog.Error("Notification error",
@@ -82,10 +108,10 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 				mlog.String("deviceId", tmpMessage.DeviceId),
 				mlog.String("status", err.Error()),
 			)
-
 			continue
 		}
 
+		// 记录日志
 		a.NotificationsLog.Info("Notification sent",
 			mlog.String("ackId", tmpMessage.AckId),
 			mlog.String("type", tmpMessage.Type),
@@ -96,6 +122,7 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 			mlog.String("status", model.PUSH_SEND_SUCCESS),
 		)
 
+		// 监控上报
 		if a.Metrics != nil {
 			a.Metrics.IncrementPostSentPush()
 		}
@@ -286,6 +313,8 @@ func (a *App) StopPushNotificationsHubWorkers() {
 }
 
 func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) error {
+
+
 	msg.ServerId = a.DiagnosticId()
 
 	a.NotificationsLog.Info("Notification will be sent",
@@ -295,6 +324,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 		mlog.String("postId", msg.PostId),
 		mlog.String("status", model.PUSH_SEND_PREPARE),
 	)
+
 
 	request, err := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 	if err != nil {
