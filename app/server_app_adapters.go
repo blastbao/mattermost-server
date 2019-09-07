@@ -9,13 +9,13 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/mailservice"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/services/mailservice"
+	"github.com/blastbao/mattermost-server/store"
+	"github.com/blastbao/mattermost-server/store/localcachelayer"
+	"github.com/blastbao/mattermost-server/store/sqlstore"
+	"github.com/blastbao/mattermost-server/utils"
 	"github.com/pkg/errors"
 )
 

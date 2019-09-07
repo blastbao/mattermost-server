@@ -6,7 +6,7 @@
 package store
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 type StoreResult struct {

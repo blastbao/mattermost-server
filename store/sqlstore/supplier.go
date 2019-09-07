@@ -20,11 +20,11 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/einterfaces"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/store"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 const (
@@ -103,7 +103,7 @@ type SqlSupplierOldStores struct {
 
 type SqlSupplier struct {
 	// rrCounter and srCounter should be kept first.
-	// See https://github.com/mattermost/mattermost-server/pull/7281
+	// See https://github.com/blastbao/mattermost-server/pull/7281
 	rrCounter      int64
 	srCounter      int64
 	next           store.LayeredStoreSupplier

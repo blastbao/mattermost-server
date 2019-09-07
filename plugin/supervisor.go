@@ -12,8 +12,8 @@ import (
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 type supervisor struct {

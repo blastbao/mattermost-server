@@ -183,8 +183,8 @@ func (wsc *WebSocketClient) pingHandler(appData string) error {
 	if !wsc.pingTimeoutTimer.Stop() {
 		<-wsc.pingTimeoutTimer.C
 	}
-
 	wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
+	// 收到 ping 则回复 pong
 	wsc.Conn.WriteMessage(websocket.PongMessage, []byte{})
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/utils/testutils"
+	"github.com/blastbao/mattermost-server/utils/testutils"
 )
 
 func TestGetBrandImage(t *testing.T) {

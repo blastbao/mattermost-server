@@ -6,7 +6,7 @@ package config
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 // Listener is a callback function invoked when the configuration changes.

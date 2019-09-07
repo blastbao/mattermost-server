@@ -5,7 +5,7 @@
 package plugintest
 
 import (
-	model "github.com/mattermost/mattermost-server/model"
+	model "github.com/blastbao/mattermost-server/model"
 	mock "github.com/stretchr/testify/mock"
 )
 

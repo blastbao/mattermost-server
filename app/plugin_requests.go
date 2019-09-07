@@ -14,10 +14,10 @@ import (
 	"io/ioutil"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/plugin"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {

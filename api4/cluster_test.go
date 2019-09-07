@@ -6,7 +6,7 @@ package api4
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 func TestGetClusterStatus(t *testing.T) {

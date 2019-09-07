@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 // Test for MM-13598 where an invalid integration URL was causing a crash

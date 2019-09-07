@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"github.com/mattermost/mattermost-server/testlib"
+	"github.com/blastbao/mattermost-server/testlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"

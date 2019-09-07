@@ -131,7 +131,7 @@ pipeline {
             }
 
             steps {
-                dir('src/github.com/mattermost/mattermost-server/build') {
+                dir('src/github.com/blastbao/mattermost-server/build') {
                     ansiColor('xterm') {
                         sh """
                         /usr/local/bin/docker-compose --no-ansi run --rm start_dependencies
@@ -280,7 +280,7 @@ pipeline {
                         }
                     }
                     steps {
-                        dir('src/github.com/mattermost/mattermost-server/dist') {
+                        dir('src/github.com/blastbao/mattermost-server/dist') {
                             step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
                                 bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}",
                                 excludedFile: '',
@@ -320,7 +320,7 @@ pipeline {
                         expression { env.CHANGE_ID == null }
                     }
                     steps {
-                        dir('src/github.com/mattermost/mattermost-server/dist') {
+                        dir('src/github.com/blastbao/mattermost-server/dist') {
                             step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
                                 bucket: "releases.mattermost.com/mattermost-platform-pr/${BRANCH_NAME}",
                                 excludedFile: '',
@@ -397,7 +397,7 @@ pipeline {
                 junit allowEmptyResults: true, healthScaleFactor: 0.0, testResults: 'report*.xml'
                 archiveArtifacts 'report*.xml'
             }
-            dir('src/github.com/mattermost/mattermost-server/build') {
+            dir('src/github.com/blastbao/mattermost-server/build') {
                 ansiColor('xterm') {
                     sh """
                         # Capture docker logs

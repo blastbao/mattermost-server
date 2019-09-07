@@ -15,11 +15,11 @@ import (
 	"strings"
 
 	"github.com/disintegration/imaging"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/plugin"
+	"github.com/blastbao/mattermost-server/store"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {

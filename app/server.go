@@ -24,17 +24,17 @@ import (
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/jobs"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/httpservice"
-	"github.com/mattermost/mattermost-server/services/imageproxy"
-	"github.com/mattermost/mattermost-server/services/timezones"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/config"
+	"github.com/blastbao/mattermost-server/einterfaces"
+	"github.com/blastbao/mattermost-server/jobs"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/plugin"
+	"github.com/blastbao/mattermost-server/services/httpservice"
+	"github.com/blastbao/mattermost-server/services/imageproxy"
+	"github.com/blastbao/mattermost-server/services/timezones"
+	"github.com/blastbao/mattermost-server/store"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 var MaxNotificationsPerChannelDefault int64 = 1000000
@@ -56,7 +56,10 @@ type Server struct {
 
 	didFinishListen chan struct{}
 
+
+	// 正在执行的 goroutine 计数
 	goroutineCount      int32
+	// 正在执行的 goroutine 退出时会触发此管道信号
 	goroutineExitSignal chan struct{}
 
 	PluginsEnvironment     *plugin.Environment
@@ -371,16 +374,23 @@ func (s *Server) Shutdown() error {
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
 // the server is shutdown.
 func (s *Server) Go(f func()) {
+
+	// 增加正在执行的 goroutine 计数
 	atomic.AddInt32(&s.goroutineCount, 1)
 
+	// 启动新 goroutine 执行 f() 函数
 	go func() {
 		f()
 
+		// 减少正在执行的 goroutine 计数
 		atomic.AddInt32(&s.goroutineCount, -1)
+
+		// 发送退出信号
 		select {
 		case s.goroutineExitSignal <- struct{}{}:
 		default:
 		}
+
 	}()
 }
 
@@ -423,6 +433,7 @@ func (s *Server) Start() error {
 	mlog.Info("Starting Server...")
 
 	var handler http.Handler = s.RootRouter
+
 	if allowedOrigins := *s.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
 		exposedCorsHeaders := *s.Config().ServiceSettings.CorsExposedHeaders
 		allowCredentials := *s.Config().ServiceSettings.CorsAllowCredentials

@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"github.com/dgryski/dgoogauth"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/configservice"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/services/configservice"
+	"github.com/blastbao/mattermost-server/store"
 	"github.com/mattermost/rsc/qr"
 )
 

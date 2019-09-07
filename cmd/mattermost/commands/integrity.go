@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/blastbao/mattermost-server/store"
 	"github.com/spf13/cobra"
 )
 

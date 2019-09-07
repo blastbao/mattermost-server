@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/config"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 func (api *API) InitConfig() {

@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/mfa"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/services/mfa"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 type TokenLocation int

@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/jobs"
+	"github.com/blastbao/mattermost-server/config"
+	"github.com/blastbao/mattermost-server/jobs"
 	"github.com/stretchr/testify/require"
 )
 

@@ -8,8 +8,8 @@ import (
 
 	"github.com/avct/uasurfer"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/app"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 // MattermostApp describes downloads for the Mattermost App

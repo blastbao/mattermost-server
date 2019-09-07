@@ -8,8 +8,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/testlib"
+	"github.com/blastbao/mattermost-server/api4"
+	"github.com/blastbao/mattermost-server/testlib"
 )
 
 func TestMain(m *testing.M) {

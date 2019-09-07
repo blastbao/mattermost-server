@@ -9,9 +9,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/utils/fileutils"
 )
 
 type AutoPostCreator struct {

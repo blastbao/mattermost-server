@@ -6,8 +6,8 @@ package api4
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/app"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 func (api *API) InitTermsOfService() {

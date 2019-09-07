@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 	"github.com/pkg/errors"
 )
 

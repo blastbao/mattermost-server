@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/jobs"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/app"
+	"github.com/blastbao/mattermost-server/jobs"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 const (

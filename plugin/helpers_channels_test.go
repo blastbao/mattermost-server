@@ -6,9 +6,9 @@ package plugin_test
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/plugin/plugintest"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/plugin"
+	"github.com/blastbao/mattermost-server/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 )
 

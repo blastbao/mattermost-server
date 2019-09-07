@@ -6,8 +6,8 @@ package storetest
 import (
 	"github.com/stretchr/testify/mock"
 
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/storetest/mocks"
+	"github.com/blastbao/mattermost-server/store"
+	"github.com/blastbao/mattermost-server/store/storetest/mocks"
 )
 
 // Store can be used to provide mock stores for testing.

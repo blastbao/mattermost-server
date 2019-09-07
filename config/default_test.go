@@ -9,9 +9,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 
-	"github.com/mattermost/mattermost-server/config/config_generator/generator"
+	"github.com/blastbao/mattermost-server/config/config_generator/generator"
 	"github.com/stretchr/testify/require"
 )
 

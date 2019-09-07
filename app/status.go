@@ -6,9 +6,9 @@ package app
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
@@ -175,6 +175,8 @@ func (a *App) SetStatusLastActivityAt(userId string, activityAt int64) {
 }
 
 func (a *App) SetStatusOnline(userId string, manual bool) {
+
+
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -187,10 +189,15 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 	var status *model.Status
 	var err *model.AppError
 
+
 	if status, err = a.GetStatus(userId); err != nil {
+
 		status = &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 		broadcast = true
+
 	} else {
+
+
 		if status.Manual && !manual {
 			return // manually set status always overrides non-manual one
 		}
@@ -208,11 +215,13 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 		status.LastActivityAt = model.GetMillis()
 	}
 
+
 	a.AddStatusCache(status)
 
-	// Only update the database if the status has changed, the status has been manually set,
-	// or enough time has passed since the previous action
+	// Only update the database if the status has changed,
+	// the status has been manually set, or enough time has passed since the previous action
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.STATUS_MIN_UPDATE_TIME {
+
 		if broadcast {
 			if err := a.Srv.Store.Status().SaveOrUpdate(status); err != nil {
 				mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, err), mlog.String("user_id", userId))
@@ -222,7 +231,9 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 				mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, err), mlog.String("user_id", userId))
 			}
 		}
+
 	}
+
 
 	if broadcast {
 		a.BroadcastStatus(status)

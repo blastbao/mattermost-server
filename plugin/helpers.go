@@ -3,7 +3,7 @@
 
 package plugin
 
-import "github.com/mattermost/mattermost-server/model"
+import "github.com/blastbao/mattermost-server/model"
 
 type Helpers interface {
 	// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.

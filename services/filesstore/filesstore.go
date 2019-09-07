@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 type ReadCloseSeeker interface {

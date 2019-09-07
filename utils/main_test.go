@@ -6,7 +6,7 @@ package utils_test
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/testlib"
+	"github.com/blastbao/mattermost-server/testlib"
 )
 
 var mainHelper *testlib.MainHelper

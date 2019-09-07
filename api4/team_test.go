@@ -13,11 +13,11 @@ import (
 
 	"encoding/base64"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/mailservice"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/testutils"
+	"github.com/blastbao/mattermost-server/app"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/services/mailservice"
+	"github.com/blastbao/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

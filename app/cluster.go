@@ -4,7 +4,7 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 // Registers a given function to be called when the cluster leader may have changed. Returns a unique ID for the

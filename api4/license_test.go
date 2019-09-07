@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 func TestGetOldClientLicense(t *testing.T) {

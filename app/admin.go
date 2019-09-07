@@ -12,10 +12,10 @@ import (
 
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/mailservice"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/services/mailservice"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {

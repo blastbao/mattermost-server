@@ -18,10 +18,10 @@ import (
 	"net/http"
 
 	"github.com/jaytaylor/html2text"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/services/filesstore"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 // smtpClient is implemented by an smtp.Client. See https://golang.org/pkg/net/smtp/#Client.

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 func TestCreateOAuthApp(t *testing.T) {

@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/blastbao/mattermost-server/einterfaces"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/store"
 )
 
 // bot is a subset of the model.Bot type, omitting the model.User fields.

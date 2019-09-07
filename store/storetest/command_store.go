@@ -6,8 +6,8 @@ package storetest
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/store"
 )
 
 func TestCommandStore(t *testing.T, ss store.Store) {

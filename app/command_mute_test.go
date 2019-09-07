@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 )
 

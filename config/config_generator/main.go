@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mattermost/mattermost-server/config/config_generator/generator"
+	"github.com/blastbao/mattermost-server/config/config_generator/generator"
 )
 
 func main() {

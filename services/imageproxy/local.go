@@ -12,8 +12,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/services/httpservice"
 	"willnorris.com/go/imageproxy"
 )
 

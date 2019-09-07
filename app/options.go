@@ -4,11 +4,11 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/mlog"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/blastbao/mattermost-server/config"
+	"github.com/blastbao/mattermost-server/store"
 )
 
 type Option func(s *Server) error

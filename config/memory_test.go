@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/config"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 func setupConfigMemory(t *testing.T) {

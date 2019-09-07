@@ -8,9 +8,9 @@ import (
 	"net/http"
 
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/store"
 )
 
 type SqlReactionStore struct {

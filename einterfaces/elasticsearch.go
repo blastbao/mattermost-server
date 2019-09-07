@@ -6,7 +6,7 @@ package einterfaces
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 type ElasticsearchInterface interface {

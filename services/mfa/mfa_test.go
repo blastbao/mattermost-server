@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/dgryski/dgoogauth"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/utils/testutils"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/plugin/plugintest/mock"
+	"github.com/blastbao/mattermost-server/store/storetest/mocks"
+	"github.com/blastbao/mattermost-server/utils/testutils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

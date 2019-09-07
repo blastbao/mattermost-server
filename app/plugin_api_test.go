@@ -17,10 +17,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/mailservice"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/plugin"
+	"github.com/blastbao/mattermost-server/services/mailservice"
+	"github.com/blastbao/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -61,7 +61,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/blastbao/mattermost-server/plugin"
 		)
 
 		type MyPlugin struct {
@@ -414,8 +414,8 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/blastbao/mattermost-server/plugin"
+			"github.com/blastbao/mattermost-server/model"
 			"fmt"
 		)
 
@@ -485,8 +485,8 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/blastbao/mattermost-server/plugin"
+			"github.com/blastbao/mattermost-server/model"
 			"fmt"
 		)
 
@@ -552,8 +552,8 @@ func TestPluginAPIGetBundlePath(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/blastbao/mattermost-server/plugin"
+			"github.com/blastbao/mattermost-server/model"
 		)
 
 		type MyPlugin struct {
@@ -639,7 +639,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
     package main
 
     import (
-      "github.com/mattermost/mattermost-server/plugin"
+      "github.com/blastbao/mattermost-server/plugin"
     )
 
     type MyPlugin struct {
@@ -965,8 +965,8 @@ func TestPluginBots(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/blastbao/mattermost-server/plugin"
+			"github.com/blastbao/mattermost-server/model"
 		)
 
 		type MyPlugin struct {

@@ -9,14 +9,14 @@ import (
 	"strconv"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/jobs"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/httpservice"
-	"github.com/mattermost/mattermost-server/services/imageproxy"
-	"github.com/mattermost/mattermost-server/services/timezones"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/einterfaces"
+	"github.com/blastbao/mattermost-server/jobs"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/services/httpservice"
+	"github.com/blastbao/mattermost-server/services/imageproxy"
+	"github.com/blastbao/mattermost-server/services/timezones"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 type App struct {
@@ -34,7 +34,9 @@ type App struct {
 	AcceptLanguage string
 
 	AccountMigration einterfaces.AccountMigrationInterface
+
 	Cluster          einterfaces.ClusterInterface
+
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
 	Elasticsearch    einterfaces.ElasticsearchInterface

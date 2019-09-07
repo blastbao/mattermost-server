@@ -13,11 +13,11 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/imgutils"
-	"github.com/mattermost/mattermost-server/utils/markdown"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/utils/imgutils"
+	"github.com/blastbao/mattermost-server/utils/markdown"
 )
 
 const LINK_CACHE_SIZE = 10000

@@ -3,7 +3,7 @@ package sqlstore
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/store/storetest"
+	"github.com/blastbao/mattermost-server/store/storetest"
 )
 
 func TestUserTermsOfServiceStore(t *testing.T) {

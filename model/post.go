@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/utils/markdown"
+	"github.com/blastbao/mattermost-server/utils/markdown"
 )
 
 const (

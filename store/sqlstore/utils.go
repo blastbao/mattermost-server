@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/mlog"
 )
 
 // Converts a list of strings into a list of query parameters and a named parameter map that can

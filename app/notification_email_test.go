@@ -12,9 +12,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/timezones"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/services/timezones"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {

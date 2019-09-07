@@ -17,9 +17,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/testlib"
+	"github.com/blastbao/mattermost-server/api4"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/testlib"
 )
 
 var coverprofileCounters map[string]int = make(map[string]int)

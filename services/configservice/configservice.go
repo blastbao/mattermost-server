@@ -6,7 +6,7 @@ package configservice
 import (
 	"crypto/ecdsa"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 // An interface representing something that contains a Config, such as the app.App struct

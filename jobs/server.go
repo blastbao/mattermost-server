@@ -4,11 +4,11 @@
 package jobs
 
 import (
-	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/configservice"
-	"github.com/mattermost/mattermost-server/store"
+	ejobs "github.com/blastbao/mattermost-server/einterfaces/jobs"
+	tjobs "github.com/blastbao/mattermost-server/jobs/interfaces"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/services/configservice"
+	"github.com/blastbao/mattermost-server/store"
 )
 
 type JobServer struct {

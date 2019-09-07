@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/blastbao/mattermost-server/mlog"
+	"github.com/blastbao/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/utils"
 )
 
 type webSocketHandler interface {
@@ -26,18 +26,22 @@ func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 }
 
 func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
+
+	// 检查 action 合法性
 	if r.Action == "" {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.no_action.app_error", nil, "", http.StatusBadRequest)
 		ReturnWebSocketError(conn, r, err)
 		return
 	}
 
+	// 检查 seq 序号合法性
 	if r.Seq <= 0 {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.bad_seq.app_error", nil, "", http.StatusBadRequest)
 		ReturnWebSocketError(conn, r, err)
 		return
 	}
 
+	// ???
 	if r.Action == model.WEBSOCKET_AUTHENTICATION_CHALLENGE {
 		if conn.GetSessionToken() != "" {
 			return
@@ -72,12 +76,14 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
+	// 检查是否通过鉴权
 	if !conn.IsAuthenticated() {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "", http.StatusUnauthorized)
 		ReturnWebSocketError(conn, r, err)
 		return
 	}
 
+	// 根据 action 查找已注册的 handler
 	handler, ok := wr.handlers[r.Action]
 	if !ok {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.bad_action.app_error", nil, "", http.StatusInternalServerError)
@@ -85,6 +91,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
+	// 执行 handler 处理请求 r
 	handler.ServeWebSocket(conn, r)
 }
 

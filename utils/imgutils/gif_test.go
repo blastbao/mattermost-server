@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/utils/testutils"
+	"github.com/blastbao/mattermost-server/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

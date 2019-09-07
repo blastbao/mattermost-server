@@ -6,7 +6,7 @@ package store
 import (
 	"context"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 func (s *LocalCacheSupplier) handleClusterInvalidateRole(msg *model.ClusterMessage) {

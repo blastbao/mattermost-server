@@ -57,7 +57,7 @@ pipeline {
                 platformStages.platformCleanDockerCompose(rndEE)
               }
             }
-            stash includes: 'src/github.com/mattermost/mattermost-server/dist/**', name: 'eedist'
+            stash includes: 'src/github.com/blastbao/mattermost-server/dist/**', name: 'eedist'
           }
         }
         stage ('Build TE') {
@@ -77,7 +77,7 @@ pipeline {
                 platformStages.platformCleanDockerCompose(rndTE)
               }
             }
-            stash includes: 'src/github.com/mattermost/mattermost-server/dist/**', name: 'tedist'
+            stash includes: 'src/github.com/blastbao/mattermost-server/dist/**', name: 'tedist'
           }
         }
       }

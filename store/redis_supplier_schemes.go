@@ -6,7 +6,7 @@ package store
 import (
 	"context"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 func (s *RedisSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hints ...LayeredStoreHint) (*model.Scheme, *model.AppError) {

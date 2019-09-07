@@ -6,7 +6,7 @@ package config
 import (
 	"sync"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 // emitter enables threadsafe registration and broadcasting to configuration listeners

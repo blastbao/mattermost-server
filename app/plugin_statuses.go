@@ -6,7 +6,7 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 // GetPluginStatus returns the status for a plugin installed on this server.

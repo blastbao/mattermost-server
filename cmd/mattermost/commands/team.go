@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/app"
+	"github.com/blastbao/mattermost-server/model"
 	"github.com/spf13/cobra"
 )
 

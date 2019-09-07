@@ -4,7 +4,7 @@
 package storetest
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/blastbao/mattermost-server/model"
 )
 
 func MakeEmail() string {

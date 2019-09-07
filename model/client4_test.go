@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// https://github.com/mattermost/mattermost-server/issues/8205
+// https://github.com/blastbao/mattermost-server/issues/8205
 func TestClient4CreatePost(t *testing.T) {
 	post := &Post{
 		Props: map[string]interface{}{
