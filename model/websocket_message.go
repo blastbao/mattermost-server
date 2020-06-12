@@ -42,10 +42,12 @@ const (
 	WEBSOCKET_EVENT_PREFERENCE_CHANGED      = "preference_changed"
 	WEBSOCKET_EVENT_PREFERENCES_CHANGED     = "preferences_changed"
 	WEBSOCKET_EVENT_PREFERENCES_DELETED     = "preferences_deleted"
+	// 临时消息
 	WEBSOCKET_EVENT_EPHEMERAL_MESSAGE       = "ephemeral_message"
 	// 用户在线状态变化
 	WEBSOCKET_EVENT_STATUS_CHANGE           = "status_change"
 	WEBSOCKET_EVENT_HELLO                   = "hello"
+	//
 	WEBSOCKET_AUTHENTICATION_CHALLENGE      = "authentication_challenge"
 	WEBSOCKET_EVENT_REACTION_ADDED          = "reaction_added"
 	WEBSOCKET_EVENT_REACTION_REMOVED        = "reaction_removed"

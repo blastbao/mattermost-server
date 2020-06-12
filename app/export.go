@@ -21,37 +21,58 @@ import (
 
 // We use this map to identify the exportable preferences.
 // Here we link the preference category and name, to the name of the relevant field in the import struct.
-var exportablePreferences = map[ComparablePreference]string{{
-	Category: model.PREFERENCE_CATEGORY_THEME,
-	Name:     "",
-}: "Theme", {
-	Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
-	Name:     "feature_enabled_markdown_preview",
-}: "UseMarkdownPreview", {
-	Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
-	Name:     "formatting",
-}: "UseFormatting", {
-	Category: model.PREFERENCE_CATEGORY_SIDEBAR_SETTINGS,
-	Name:     "show_unread_section",
-}: "ShowUnreadSection", {
-	Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-	Name:     model.PREFERENCE_NAME_USE_MILITARY_TIME,
-}: "UseMilitaryTime", {
-	Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-	Name:     model.PREFERENCE_NAME_COLLAPSE_SETTING,
-}: "CollapsePreviews", {
-	Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-	Name:     model.PREFERENCE_NAME_MESSAGE_DISPLAY,
-}: "MessageDisplay", {
-	Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-	Name:     "channel_display_mode",
-}: "ChannelDisplayMode", {
-	Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS,
-	Name:     "",
-}: "TutorialStep", {
-	Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
-	Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
-}: "EmailInterval",
+var exportablePreferences = map[ComparablePreference]string{
+
+	{
+		Category: model.PREFERENCE_CATEGORY_THEME,
+		Name:     "",
+	}: "Theme",
+
+	{
+		Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
+		Name:     "feature_enabled_markdown_preview",
+	}: "UseMarkdownPreview",
+
+	{
+		Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
+		Name:     "formatting",
+	}: "UseFormatting",
+
+	{
+		Category: model.PREFERENCE_CATEGORY_SIDEBAR_SETTINGS,
+		Name:     "show_unread_section",
+	}: "ShowUnreadSection",
+
+	{
+		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+		Name:     model.PREFERENCE_NAME_USE_MILITARY_TIME,
+	}: "UseMilitaryTime",
+
+	{
+		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+		Name:     model.PREFERENCE_NAME_COLLAPSE_SETTING,
+	}: "CollapsePreviews",
+
+	{
+		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+		Name:     model.PREFERENCE_NAME_MESSAGE_DISPLAY,
+	}: "MessageDisplay",
+
+	{
+		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+		Name:     "channel_display_mode",
+	}: "ChannelDisplayMode",
+
+	{
+		Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS,
+		Name:     "",
+	}: "TutorialStep",
+
+	{
+		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+	}: "EmailInterval",
+
 }
 
 func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {

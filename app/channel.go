@@ -1610,18 +1610,25 @@ func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *mo
 }
 
 func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+
+
+	// 查询用户信息
 	user, err := a.Srv.Store.User().Get(userIdToRemove)
 	if err != nil {
 		return err
 	}
+
+	// 是否是访客
 	isGuest := user.IsGuest()
 
+	// 默认通道
 	if channel.Name == model.DEFAULT_CHANNEL {
 		if !isGuest {
 			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
 		}
 	}
 
+	//
 	if channel.IsGroupConstrained() && userIdToRemove != removerUserId {
 		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIdToRemove}, channel)
 		if err != nil {
@@ -1640,6 +1647,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 	if err := a.Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); err != nil {
 		return err
 	}
+
 	if err := a.Srv.Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); err != nil {
 		return err
 	}
@@ -1687,12 +1695,14 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		})
 	}
 
+	// 发送事件到 channel.Id 通道中
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", channel.Id, "", nil)
 	message.Add("user_id", userIdToRemove)
 	message.Add("remover_id", removerUserId)
 	a.Publish(message)
 
 	// because the removed user no longer belongs to the channel we need to send a separate websocket event
+	// 发送事件给 userId
 	userMsg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", "", userIdToRemove, nil)
 	userMsg.Add("channel_id", channel.Id)
 	userMsg.Add("remover_id", removerUserId)

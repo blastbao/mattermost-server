@@ -28,13 +28,9 @@ const NOTIFICATION_TYPE_MESSAGE NotificationType = "message"
 const PUSH_NOTIFICATION_HUB_WORKERS 			= 1000  //
 const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER 	= 50
 
-
-
-
 type PushNotificationsHub struct {
 	Channels []chan PushNotification  // 每个 HUB_WORKER 对应一个消息推送管道，所以此数组大小为 1000。
 }
-
 
 type PushNotification struct {
 	id                 string 			// ID
@@ -43,17 +39,16 @@ type PushNotification struct {
 	userId             string			// userID
 	channelId          string 			// channelID
 
-	post               *model.Post
-	user               *model.User
-	channel            *model.Channel
+	post               *model.Post		// 内容
+	user               *model.User		// 用户
+	channel            *model.Channel	// 频道
 
-	senderName         string
-	channelName        string
-	explicitMention    bool
-	channelWideMention bool
-	replyToThreadType  string
+	senderName         string			// 发送者姓名
+	channelName        string			// 频道名称
+	explicitMention    bool				// 显式提及 @userId
+	channelWideMention bool				// 频道提及 @channel @here @all
+	replyToThreadType  string			//
 }
-
 
 // 根据 userID 的哈希值确定其属于哪个 Channel，返回该 Channel 对应的推送管道
 func (hub *PushNotificationsHub) GetGoChannelFromUserId(userId string) chan PushNotification {
@@ -62,7 +57,6 @@ func (hub *PushNotificationsHub) GetGoChannelFromUserId(userId string) chan Push
 	chanIdx := h.Sum32() % PUSH_NOTIFICATION_HUB_WORKERS
 	return hub.Channels[chanIdx]
 }
-
 
 //
 func (a *App) sendPushNotificationSync(	post *model.Post,
@@ -131,19 +125,28 @@ func (a *App) sendPushNotificationSync(	post *model.Post,
 	return nil
 }
 
-func (a *App) sendPushNotification(notification *postNotification, user *model.User, explicitMention, channelWideMention bool, replyToThreadType string) {
+// 发送通知给 user
+func (a *App) sendPushNotification(
+	notification *postNotification,
+	user *model.User,
+	explicitMention,
+	channelWideMention bool,
+	replyToThreadType string,
+) {
 	cfg := a.Config()
 	channel := notification.channel
 	post := notification.post
-
+	// 通知名称
 	nameFormat := a.GetNotificationNameFormat(user)
-
+	// 频道名称
 	channelName := notification.GetChannelName(nameFormat, user.Id)
+	// 发送者名称
 	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
-
+	// 根据 userID 的哈希值取出对应的推送管道，后台有负责推送的 worker 在监听和处理
 	c := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(user.Id)
+	// 将通知写到管道中
 	c <- PushNotification{
-		notificationType:   NOTIFICATION_TYPE_MESSAGE,
+		notificationType:   NOTIFICATION_TYPE_MESSAGE, //
 		post:               post,
 		user:               user,
 		channel:            channel,
@@ -155,8 +158,18 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 	}
 }
 
-func (a *App) getPushNotificationMessage(postMessage string, explicitMention, channelWideMention, hasFiles bool,
-	senderName, channelName, channelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
+func (a *App) getPushNotificationMessage(
+	postMessage string,
+	explicitMention,
+	channelWideMention,
+	hasFiles bool,
+	senderName,
+	channelName,
+	channelType,
+	replyToThreadType string,
+	userLocale i18n.TranslateFunc,
+) string {
+
 
 	// If the post only has images then push an appropriate message
 	if len(postMessage) == 0 && hasFiles {
@@ -198,7 +211,15 @@ func (a *App) getPushNotificationMessage(postMessage string, explicitMention, ch
 	return senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
+
+
+
+
+
 func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId string) {
+
+
+
 	sessions, err := a.getMobileAppSessions(userId)
 	if err != nil {
 		mlog.Error(err.Error())
@@ -212,6 +233,7 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 		ContentAvailable: 1,
 	}
 
+
 	if unreadCount, err := a.Srv.Store.User().GetUnreadCount(userId); err != nil {
 		msg.Badge = 0
 		mlog.Error(fmt.Sprint("We could not get the unread message count for the user", userId, err), mlog.String("user_id", userId))
@@ -220,7 +242,9 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 	}
 
 	for _, session := range sessions {
+
 		if currentSessionId != session.Id {
+
 			tmpMessage := model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 			tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 			tmpMessage.AckId = model.NewId()
@@ -236,7 +260,6 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 					mlog.String("deviceId", tmpMessage.DeviceId),
 					mlog.String("status", err.Error()),
 				)
-
 				continue
 			}
 
@@ -257,27 +280,40 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 	}
 }
 
+
+
 func (a *App) ClearPushNotification(currentSessionId, userId, channelId string) {
+
+
 	channel := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(userId)
+
 	channel <- PushNotification{
 		notificationType: NOTIFICATION_TYPE_CLEAR,
 		currentSessionId: currentSessionId,
 		userId:           userId,
 		channelId:        channelId,
 	}
+
 }
 
+
 func (a *App) CreatePushNotificationsHub() {
+
 	hub := PushNotificationsHub{
 		Channels: []chan PushNotification{},
 	}
+
 	for x := 0; x < PUSH_NOTIFICATION_HUB_WORKERS; x++ {
 		hub.Channels = append(hub.Channels, make(chan PushNotification, PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER))
 	}
+
 	a.Srv.PushNotificationsHub = hub
+
 }
 
 func (a *App) pushNotificationWorker(notifications chan PushNotification) {
+
+
 	for notification := range notifications {
 		switch notification.notificationType {
 		case NOTIFICATION_TYPE_CLEAR:
@@ -300,6 +336,7 @@ func (a *App) pushNotificationWorker(notifications chan PushNotification) {
 }
 
 func (a *App) StartPushNotificationsHubWorkers() {
+	//
 	for x := 0; x < PUSH_NOTIFICATION_HUB_WORKERS; x++ {
 		channel := a.Srv.PushNotificationsHub.Channels[x]
 		a.Srv.Go(func() { a.pushNotificationWorker(channel) })
@@ -312,6 +349,9 @@ func (a *App) StopPushNotificationsHubWorkers() {
 	}
 }
 
+
+
+//
 func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) error {
 
 
@@ -324,7 +364,6 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 		mlog.String("postId", msg.PostId),
 		mlog.String("status", model.PUSH_SEND_PREPARE),
 	)
-
 
 	request, err := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 	if err != nil {
@@ -459,8 +498,20 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 	return false
 }
 
-func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
-	explicitMention bool, channelWideMention bool, replyToThreadType string) model.PushNotification {
+
+func (a *App) BuildPushNotificationMessage(
+
+	post *model.Post,
+	user *model.User,
+	channel *model.Channel,
+	channelName string,
+	senderName string,
+	explicitMention bool,
+	channelWideMention bool,
+	replyToThreadType string,
+
+) model.PushNotification {
+
 
 	msg := model.PushNotification{
 		Category:  model.CATEGORY_CAN_REPLY,

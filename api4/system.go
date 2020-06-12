@@ -374,6 +374,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
+
 	ack := model.PushNotificationAckFromJson(r.Body)
 
 	if !*c.App.Config().EmailSettings.SendPushNotifications {

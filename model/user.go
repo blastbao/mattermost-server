@@ -495,6 +495,7 @@ func (u *User) Sanitize(options map[string]bool) {
 }
 
 // Remove any input data from the user object that is not user controlled
+// 从 User 对象中删除任何非用户控制的输入数据。
 func (u *User) SanitizeInput() {
 	u.AuthData = NewString("")
 	u.AuthService = ""

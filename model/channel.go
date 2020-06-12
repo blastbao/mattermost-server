@@ -15,20 +15,30 @@ import (
 )
 
 const (
+	// 开放的
 	CHANNEL_OPEN                   = "O"
+	// 私有的
 	CHANNEL_PRIVATE                = "P"
+	// 直达的
 	CHANNEL_DIRECT                 = "D"
+	// 群组
 	CHANNEL_GROUP                  = "G"
+	// 群组最多成员数
 	CHANNEL_GROUP_MAX_USERS        = 8
+	// 群组最少成员数
 	CHANNEL_GROUP_MIN_USERS        = 3
+	// 默认频道
 	DEFAULT_CHANNEL                = "town-square"
+	// 频道名的最大显示长度
 	CHANNEL_DISPLAY_NAME_MAX_RUNES = 64
+	// 频道名最小长度
 	CHANNEL_NAME_MIN_LENGTH        = 2
+	// 频道名最大长度
 	CHANNEL_NAME_MAX_LENGTH        = 64
 	CHANNEL_HEADER_MAX_RUNES       = 1024
 	CHANNEL_PURPOSE_MAX_RUNES      = 250
 	CHANNEL_CACHE_SIZE             = 25000
-
+	// 排序规则
 	CHANNEL_SORT_BY_USERNAME = "username"
 	CHANNEL_SORT_BY_STATUS   = "status"
 )
@@ -239,7 +249,10 @@ func (o *Channel) IsGroupConstrained() bool {
 	return o.GroupConstrained != nil && *o.GroupConstrained
 }
 
+
+// 对于 Direct 直达频道，频道名是 userId__userId 形式。
 func (o *Channel) GetOtherUserIdForDM(userId string) string {
+
 	if o.Type != CHANNEL_DIRECT {
 		return ""
 	}

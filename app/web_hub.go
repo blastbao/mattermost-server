@@ -29,9 +29,13 @@ type WebConnActivityMessage struct {
 	ActivityAt   int64
 }
 
+
+
+
 type Hub struct {
 	// connectionCount should be kept first.
 	// See https://github.com/blastbao/mattermost-server/pull/7281
+
 	connectionCount int64
 	app             *App
 	connectionIndex int
@@ -56,7 +60,6 @@ type Hub struct {
 	goroutineId     int
 }
 
-
 func (a *App) NewWebHub() *Hub {
 	return &Hub{
 		app:            a,
@@ -80,49 +83,47 @@ func (a *App) TotalWebsocketConnections() int {
 	return int(count)
 }
 
+
+
+
+
 func (a *App) HubStart() {
 
 	// Total number of hubs is twice the number of CPUs.
+	// hubs 的总数是 CPU 核数的两倍。
 	numberOfHubs := runtime.NumCPU() * 2
 	mlog.Info(fmt.Sprintf("Starting %v websocket hubs", numberOfHubs))
 
+	// 创建&启动 n 个 hubs
 	a.Srv.Hubs = make([]*Hub, numberOfHubs)
 	a.Srv.HubsStopCheckingForDeadlock = make(chan bool, 1)
-
 	for i := 0; i < len(a.Srv.Hubs); i++ {
 		a.Srv.Hubs[i] = a.NewWebHub()
 		a.Srv.Hubs[i].connectionIndex = i
 		a.Srv.Hubs[i].Start()
 	}
 
-
 	go func() {
-		ticker := time.NewTicker(DEADLOCK_TICKER)
 
+		ticker := time.NewTicker(DEADLOCK_TICKER)
 		defer func() {
 			ticker.Stop()
 		}()
 
 		for {
 			select {
-
 			// 定时检查
 			case <-ticker.C:
-
 				// 遍历所有 hubs
 				for _, hub := range a.Srv.Hubs {
-
 					// 死锁预警？
 					if len(hub.broadcast) >= DEADLOCK_WARN {
-
 						mlog.Error(fmt.Sprintf("Hub processing might be deadlock on hub %v goroutine %v with %v events in the buffer", hub.connectionIndex, hub.goroutineId, len(hub.broadcast)))
-
 						// 获取堆栈，追踪可能死锁的协程
 						buf := make([]byte, 1<<16)
 						runtime.Stack(buf, true)
 						output := fmt.Sprintf("%s", buf)
 						splits := strings.Split(output, "goroutine ")
-
 						for _, part := range splits {
 							if strings.Contains(part, fmt.Sprintf("%v", hub.goroutineId)) {
 								mlog.Error(fmt.Sprintf("Trace for possible deadlock goroutine %v", part))
@@ -224,6 +225,8 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 			message.Event == model.WEBSOCKET_EVENT_DIRECT_ADDED ||
 			message.Event == model.WEBSOCKET_EVENT_GROUP_ADDED ||
 			message.Event == model.WEBSOCKET_EVENT_ADDED_TO_TEAM {
+
+			//
 			cm.SendType = model.CLUSTER_SEND_RELIABLE
 		}
 
@@ -475,7 +478,11 @@ func (h *Hub) InvalidateUser(userId string) {
 // 更新连接活跃时间
 func (h *Hub) UpdateActivity(userId, sessionToken string, activityAt int64) {
 	select {
-	case h.activity <- &WebConnActivityMessage{UserId: userId, SessionToken: sessionToken, ActivityAt: activityAt}:
+	case h.activity <- &WebConnActivityMessage{
+		UserId: userId,
+		SessionToken: sessionToken,
+		ActivityAt: activityAt,
+	}:
 	case <-h.didStop:
 	}
 }
@@ -504,7 +511,7 @@ func (h *Hub) Start() {
 	var doRecoverableStart func()
 	var doRecover func()
 
-	//1. 注册新连接
+	//1. 注册连接
 	//2. 注销连接
 	//3. 用户登陆态失效
 	//4. 更新 user 最近活跃时间
@@ -523,7 +530,7 @@ func (h *Hub) Start() {
 		for {
 			select {
 
-			// 注册新连接
+			// 注册连接
 			case webCon := <-h.register:
 				// 添加 webCon 到 connections 中
 				connections.Add(webCon)
@@ -647,9 +654,6 @@ func (h *Hub) Start() {
 		}
 	}
 
-
-
-
 	doRecoverableStart = func() {
 		defer doRecover()
 		doStart()
@@ -674,10 +678,6 @@ func (h *Hub) Start() {
 	// 启动 doStart()
 	go doRecoverableStart()
 }
-
-
-
-
 
 // 索引结构
 type hubConnectionIndexIndexes struct {

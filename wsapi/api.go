@@ -22,5 +22,6 @@ func Init(a *app.App, router *app.WebSocketRouter) {
 	api.InitSystem()
 	api.InitStatus()
 
+	// 创建&启动 n 个 hubs ， n 默认为 cpu 核数的两倍
 	a.HubStart()
 }

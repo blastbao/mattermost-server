@@ -389,7 +389,6 @@ func (webCon *WebConn) SendHello() {
 	webCon.Send <- msg
 }
 
-
 //
 func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session

@@ -432,9 +432,6 @@ func (s *Server) WaitForGoroutines() {
 	}
 }
 
-
-
-
 var corsAllowedMethods = []string{
 	"POST",
 	"GET",
@@ -470,10 +467,13 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
+	// 跨域
 	if allowedOrigins := *s.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
+
 		exposedCorsHeaders := *s.Config().ServiceSettings.CorsExposedHeaders
 		allowCredentials := *s.Config().ServiceSettings.CorsAllowCredentials
 		debug := *s.Config().ServiceSettings.CorsDebug
+
 		corsWrapper := cors.New(cors.Options{
 			AllowedOrigins:   strings.Fields(allowedOrigins),
 			AllowedMethods:   corsAllowedMethods,
@@ -492,6 +492,7 @@ func (s *Server) Start() error {
 		handler = corsWrapper.Handler(handler)
 	}
 
+	// 限频
 	if *s.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")
 
@@ -504,14 +505,15 @@ func (s *Server) Start() error {
 		handler = rateLimiter.RateLimitHandler(handler)
 	}
 
+
+	// 日志
 	// Creating a logger for logging errors from http.Server at error level
 	errStdLog, err := s.Log.StdLogAt(mlog.LevelError, mlog.String("source", "httpserver"))
 	if err != nil {
 		return err
 	}
 
-
-	//
+	// 服务
 	s.Server = &http.Server{
 		Handler:      handler,
 		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
@@ -519,6 +521,7 @@ func (s *Server) Start() error {
 		ErrorLog:     errStdLog,
 	}
 
+	// 监听地址
 	addr := *s.Config().ServiceSettings.ListenAddress
 	if addr == "" {
 		if *s.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
@@ -528,15 +531,13 @@ func (s *Server) Start() error {
 		}
 	}
 
-
+	// 启动 tcp 服务
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
 		return err
 	}
 	s.ListenAddr = listener.Addr().(*net.TCPAddr)
-
-
 
 	mlog.Info(fmt.Sprintf("Server is listening on %v", listener.Addr().String()))
 
@@ -553,21 +554,26 @@ func (s *Server) Start() error {
 	}
 
 	if *s.Config().ServiceSettings.Forward80To443 {
+
 		if host, port, err := net.SplitHostPort(addr); err != nil {
 			mlog.Error("Unable to setup forwarding: " + err.Error())
 		} else if port != "443" {
 			return fmt.Errorf(utils.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
+
 			httpListenAddress := net.JoinHostPort(host, "http")
 
 			if *s.Config().ServiceSettings.UseLetsEncrypt {
+
 				server := &http.Server{
 					Addr:     httpListenAddress,
 					Handler:  m.HTTPHandler(nil),
 					ErrorLog: s.Log.StdLog(mlog.String("source", "le_forwarder_server")),
 				}
 				go server.ListenAndServe()
+
 			} else {
+
 				go func() {
 					redirectListener, err := net.Listen("tcp", httpListenAddress)
 					if err != nil {
@@ -582,22 +588,30 @@ func (s *Server) Start() error {
 					}
 					server.Serve(redirectListener)
 				}()
+
 			}
 		}
+
+
 	} else if *s.Config().ServiceSettings.UseLetsEncrypt {
 		return errors.New(utils.T("api.server.start_server.forward80to443.disabled_while_using_lets_encrypt"))
 	}
 
+
 	s.didFinishListen = make(chan struct{})
 	go func() {
+
 		var err error
+
 		if *s.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 
+			//
 			tlsConfig := &tls.Config{
 				PreferServerCipherSuites: true,
 				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
 			}
 
+			//
 			switch *s.Config().ServiceSettings.TLSMinVer {
 			case "1.0":
 				tlsConfig.MinVersion = tls.VersionTLS10
@@ -607,6 +621,7 @@ func (s *Server) Start() error {
 				tlsConfig.MinVersion = tls.VersionTLS12
 			}
 
+			//
 			defaultCiphers := []uint16{
 				tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
@@ -616,13 +631,14 @@ func (s *Server) Start() error {
 				tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
 			}
 
+			//
 			if len(s.Config().ServiceSettings.TLSOverwriteCiphers) == 0 {
 				tlsConfig.CipherSuites = defaultCiphers
 			} else {
 				var cipherSuites []uint16
 				for _, cipher := range s.Config().ServiceSettings.TLSOverwriteCiphers {
-					value, ok := model.ServerTLSSupportedCiphers[cipher]
 
+					value, ok := model.ServerTLSSupportedCiphers[cipher]
 					if !ok {
 						mlog.Warn("Unsupported cipher passed", mlog.String("cipher", cipher))
 						continue
@@ -656,17 +672,23 @@ func (s *Server) Start() error {
 			err = s.Server.Serve(listener)
 		}
 
+
+
 		if err != nil && err != http.ErrServerClosed {
 			mlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
 			time.Sleep(time.Second)
 		}
 
+
 		close(s.didFinishListen)
+
+
 	}()
 
 	return nil
 }
 
+// 检查 "Origin"
 func (a *App) OriginChecker() func(*http.Request) bool {
 	if allowed := *a.Config().ServiceSettings.AllowCorsFrom; allowed != "" {
 		if allowed != "*" {
@@ -682,6 +704,7 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 	return nil
 }
 
+// 检查推送服务是否为 http
 func (s *Server) checkPushNotificationServerUrl() {
 	notificationServer := *s.Config().EmailSettings.PushNotificationServer
 	if strings.HasPrefix(notificationServer, "http://") == true {
@@ -689,39 +712,33 @@ func (s *Server) checkPushNotificationServerUrl() {
 	}
 }
 
+
+
+
+
 func runSecurityJob(s *Server) {
 	doSecurity(s)
-	model.CreateRecurringTask("Security", func() {
-		doSecurity(s)
-	}, time.Hour*4)
+	model.CreateRecurringTask("Security", func() { doSecurity(s) }, time.Hour*4)
 }
 
 func runDiagnosticsJob(s *Server) {
 	doDiagnostics(s)
-	model.CreateRecurringTask("Diagnostics", func() {
-		doDiagnostics(s)
-	}, time.Hour*24)
+	model.CreateRecurringTask("Diagnostics", func() { doDiagnostics(s) }, time.Hour*24)
 }
 
 func runTokenCleanupJob(s *Server) {
 	doTokenCleanup(s)
-	model.CreateRecurringTask("Token Cleanup", func() {
-		doTokenCleanup(s)
-	}, time.Hour*1)
+	model.CreateRecurringTask("Token Cleanup", func() { doTokenCleanup(s) }, time.Hour*1)
 }
 
 func runCommandWebhookCleanupJob(s *Server) {
 	doCommandWebhookCleanup(s)
-	model.CreateRecurringTask("Command Hook Cleanup", func() {
-		doCommandWebhookCleanup(s)
-	}, time.Hour*1)
+	model.CreateRecurringTask("Command Hook Cleanup", func() { doCommandWebhookCleanup(s) }, time.Hour*1)
 }
 
 func runSessionCleanupJob(s *Server) {
 	doSessionCleanup(s)
-	model.CreateRecurringTask("Session Cleanup", func() {
-		doSessionCleanup(s)
-	}, time.Hour*24)
+	model.CreateRecurringTask("Session Cleanup", func() { doSessionCleanup(s) }, time.Hour*24)
 }
 
 func doSecurity(s *Server) {
@@ -751,6 +768,8 @@ func doSessionCleanup(s *Server) {
 }
 
 func (s *Server) StartElasticsearch() {
+
+
 	s.Go(func() {
 		if err := s.Elasticsearch.Start(); err != nil {
 			s.Log.Error(err.Error())
@@ -813,6 +832,8 @@ func (s *Server) StartElasticsearch() {
 }
 
 func (s *Server) initDiagnostics(endpoint string) {
+
+
 	if s.diagnosticClient == nil {
 		config := analytics.Config{}
 		config.Logger = analytics.StdLogger(s.Log.StdLog(mlog.String("source", "segment")))
@@ -829,10 +850,12 @@ func (s *Server) initDiagnostics(endpoint string) {
 
 		s.diagnosticClient = client
 	}
+
 }
 
 // shutdownDiagnostics closes the diagnostic client.
 func (s *Server) shutdownDiagnostics() error {
+
 	if s.diagnosticClient != nil {
 		return s.diagnosticClient.Close()
 	}

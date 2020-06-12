@@ -59,6 +59,8 @@ const (
 	POST_PROPS_OVERRIDE_ICON_EMOJI = "override_icon_emoji"
 )
 
+
+
 type Post struct {
 	Id         string `json:"id"`
 	CreateAt   int64  `json:"create_at"`
@@ -90,6 +92,8 @@ type Post struct {
 	// Transient data populated before sending a post to the client
 	Metadata *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
+
+
 
 type PostEphemeral struct {
 	UserID string `json:"user_id"`

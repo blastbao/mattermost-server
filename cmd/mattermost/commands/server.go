@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"github.com/blastbao/mattermost-server/wsapi"
 	"net"
 	"os"
 	"os/signal"
@@ -16,7 +17,6 @@ import (
 	"github.com/blastbao/mattermost-server/mlog"
 	"github.com/blastbao/mattermost-server/utils"
 	"github.com/blastbao/mattermost-server/web"
-	"github.com/blastbao/mattermost-server/wsapi"
 	"github.com/mattermost/viper"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -54,6 +54,8 @@ func serverCmdF(command *cobra.Command, args []string) error {
 }
 
 func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
+
+
 	options := []app.Option{
 		app.ConfigStore(configStore),
 		app.RunJobs,
@@ -61,6 +63,7 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 		app.StartElasticsearch,
 		app.StartMetrics,
 	}
+
 	server, err := app.NewServer(options...)
 	if err != nil {
 		mlog.Critical(err.Error())
@@ -68,9 +71,11 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 	}
 	defer server.Shutdown()
 
+
 	if usedPlatform {
 		mlog.Error("The platform binary has been deprecated, please switch to using the mattermost binary.")
 	}
+
 
 	serverErr := server.Start()
 	if serverErr != nil {
@@ -78,9 +83,12 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 		return serverErr
 	}
 
+
 	api := api4.Init(server, server.AppOptions, server.Router)
-	wsapi.Init(server.FakeApp(), server.WebSocketRouter)
 	web.New(server, server.AppOptions, server.Router)
+
+	// 启动 websocket 服务
+	wsapi.Init(server.FakeApp(), server.WebSocketRouter)
 
 	// If we allow testing then listen for manual testing URL hits
 	if *server.Config().ServiceSettings.EnableTesting {

@@ -34,7 +34,9 @@ func Init(api4 *api4.API) {
 	api4.BaseRoutes.Root.Handle("/manualtest", api4.ApiHandler(manualTest)).Methods("GET")
 }
 
+
 func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
+
 	// Let the world know
 	mlog.Info("Setting up for manual test...")
 
@@ -91,7 +93,8 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		user := &model.User{
 			Email:    "success+" + model.NewId() + "simulator.amazonses.com",
 			Nickname: username[0],
-			Password: app.USER_PASSWORD}
+			Password: app.USER_PASSWORD,
+		}
 
 		user, resp := client.CreateUser(user)
 		if resp.Error != nil {

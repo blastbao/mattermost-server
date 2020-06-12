@@ -22,32 +22,38 @@ const (
 	THREAD_ROOT = "root"
 )
 
+
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
+
 	// Do not send notifications in archived channels
+	// 不要往已存档（删除）的频道发送通知
 	if channel.DeleteAt > 0 {
 		return []string{}, nil
 	}
 
+	// 拉取频道中所有用户的个人资料
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
 		props, err := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
-		pchan <- store.StoreResult{Data: props, Err: err}
+		pchan <- store.StoreResult{ Data: props, Err: err }
 		close(pchan)
 	}()
 
+	// 拉取频道中所有用户的通知配置
 	cmnchan := make(chan store.StoreResult, 1)
 	go func() {
 		props, err := a.Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
-		cmnchan <- store.StoreResult{Data: props, Err: err}
+		cmnchan <- store.StoreResult{ Data: props, Err: err }
 		close(cmnchan)
 	}()
 
+	// 如果当前 post 有附件文件，则拉取这些文件的信息
 	var fchan chan store.StoreResult
 	if len(post.FileIds) != 0 {
 		fchan = make(chan store.StoreResult, 1)
 		go func() {
 			fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, true)
-			fchan <- store.StoreResult{Data: fileInfos, Err: err}
+			fchan <- store.StoreResult{ Data: fileInfos, Err: err }
 			close(fchan)
 		}()
 	}
@@ -64,28 +70,33 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 	channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
 
+	// 被 @ 的用户列表
 	mentionedUserIds := make(map[string]bool)
+	// ?
 	threadMentionedUserIds := make(map[string]string)
+	// 接收所有通知的用户列表
 	allActivityPushUserIds := []string{}
+	// @here 即 @ 频道中所有在线用户
 	hereNotification := false
+	// @channel 即 @ 频道中所有用户
 	channelNotification := false
+	// @all 即 @ 频道中所有用户
 	allNotification := false
+	// 用于接收 `更新用户被 @ 次数` 结果
 	updateMentionChans := []chan *model.AppError{}
 
+	// 如果频道是 Direct 类型，则取出对方的 userId 添加到 mentionedUserIds[] 中。
 	if channel.Type == model.CHANNEL_DIRECT {
 		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
-
 		_, ok := profileMap[otherUserId]
 		if ok {
 			mentionedUserIds[otherUserId] = true
 		}
-
 		if post.Props["from_webhook"] == "true" {
 			mentionedUserIds[post.UserId] = true
 		}
 	} else {
 		keywords := a.getMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
-
 		m := getExplicitMentions(post, keywords)
 
 		// Add an implicit mention when a user is added to a channel
@@ -97,8 +108,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				m.MentionedUserIds[uid] = true
 			}
 		}
-
-		mentionedUserIds, hereNotification, channelNotification, allNotification = m.MentionedUserIds, m.HereMentioned, m.ChannelMentioned, m.AllMentioned
+		mentionedUserIds = m.MentionedUserIds
+		hereNotification = m.HereMentioned
+		channelNotification = m.ChannelMentioned
+		allNotification = m.AllMentioned
 
 		// get users that have comment thread mentions enabled
 		if len(post.RootId) > 0 && parentPostList != nil {
@@ -110,7 +123,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					} else {
 						threadMentionedUserIds[threadPost.UserId] = THREAD_ANY
 					}
-
 					if _, ok := mentionedUserIds[threadPost.UserId]; !ok {
 						mentionedUserIds[threadPost.UserId] = false
 					}
@@ -131,6 +143,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}()
 
 		// find which users in the channel are set up to always receive mobile notifications
+		// 查找频道中哪些用户被设置为总是接收移动通知。
 		for _, profile := range profileMap {
 			if (profile.NotifyProps[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_ALL ||
 				channelMemberNotifyPropsMap[profile.Id][model.PUSH_NOTIFY_PROP] == model.CHANNEL_NOTIFY_ALL) &&
@@ -141,11 +154,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
+	// @ 用户列表
 	mentionedUsersList := make([]string, 0, len(mentionedUserIds))
 	for id := range mentionedUserIds {
 		mentionedUsersList = append(mentionedUsersList, id)
 		umc := make(chan *model.AppError, 1)
 		go func(userId string) {
+			// 增加用户 userId 的被 @ 数
 			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, userId)
 			close(umc)
 		}(id)
@@ -159,19 +174,25 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		sender:     sender,
 	}
 
+	// 发送 email 给被 @ 的 user
 	if *a.Config().EmailSettings.SendEmailNotifications {
+
 		for _, id := range mentionedUsersList {
+
+			// 拉取用户详情
 			if profileMap[id] == nil {
 				continue
 			}
 
+			// 检查1: 用户是否开启全局通知）
 			userAllowsEmails := profileMap[id].NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
+			// 检查2: 用户是否开启频道通知
 			if channelEmail, ok := channelMemberNotifyPropsMap[id][model.EMAIL_NOTIFY_PROP]; ok {
 				if channelEmail != model.CHANNEL_NOTIFY_DEFAULT {
 					userAllowsEmails = channelEmail != "false"
 				}
 			}
-
+			// 检查3: 用户是否静音了频道通知
 			// Remove the user as recipient when the user has muted the channel.
 			if channelMuted, ok := channelMemberNotifyPropsMap[id][model.MARK_UNREAD_NOTIFY_PROP]; ok {
 				if channelMuted == model.CHANNEL_MARK_UNREAD_MENTION {
@@ -179,13 +200,14 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					userAllowsEmails = false
 				}
 			}
-
+			// 检查4: 用户的 email 是否已经认证
 			//If email verification is required and user email is not verified don't send email.
 			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
 				mlog.Error(fmt.Sprintf("Skipped sending notification email to %v, address not verified. [details: user_id=%v]", profileMap[id].Email, id))
 				continue
 			}
 
+			// 拉取用户的在线状态
 			var status *model.Status
 			var err *model.AppError
 			if status, err = a.GetStatus(id); err != nil {
@@ -198,9 +220,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				}
 			}
 
+			// 检查5: 用户是否为 `休假` 状态
 			autoResponderRelated := status.Status == model.STATUS_OUT_OF_OFFICE || post.Type == model.POST_AUTO_RESPONDER
-
+			// 检查6: 用户未在线、用户未注销
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 && !autoResponderRelated {
+				// 发送 Email
 				a.sendNotificationEmail(notification, profileMap[id], team)
 			}
 		}
@@ -209,8 +233,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	T := utils.GetUserTranslations(sender.Locale)
 
 	// If the channel has more than 1K users then @here is disabled
+	// 如果频道的用户数超过 1K ，那么 @here 会被禁用。（注：@here 即 @ 频道中所有在线用户）
 	if hereNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		hereNotification = false
+		// 发送临时消息给 userId，告知其 @here 的人数超过限制。
 		a.SendEphemeralPost(
 			post.UserId,
 			&model.Post{
@@ -219,10 +245,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				CreateAt:  post.CreateAt + 1,
 			},
 		)
+
 	}
 
 	// If the channel has more than 1K users then @channel is disabled
+	// 如果频道的用户数超过 1K ，那么 @channel 会被禁用。（注：@channel 即 @ 频道中所有用户）
 	if channelNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
+		// 发送临时消息给 userId，告知其 @channel 的人数超过限制。
 		a.SendEphemeralPost(
 			post.UserId,
 			&model.Post{
@@ -234,7 +263,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	// If the channel has more than 1K users then @all is disabled
+	// 如果频道的用户数超过 1K ，那么 @all 会被禁用。
 	if allNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
+		// 发送临时消息给 userId，告知其 @all 的人数超过限制。
 		a.SendEphemeralPost(
 			post.UserId,
 			&model.Post{
@@ -254,10 +285,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
+	// 是否需要发送通知
 	sendPushNotifications := false
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if license := a.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+		license := a.License()
+		if pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
 			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
 			sendPushNotifications = false
 		} else {
@@ -266,23 +299,31 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	if sendPushNotifications {
+
+		// 遍历被 @ 用户列表
 		for _, id := range mentionedUsersList {
 			if profileMap[id] == nil {
 				continue
 			}
-
 			var status *model.Status
 			var err *model.AppError
+			// 查询用户在线状态，查询失败则默认其为 `离线`
 			if status, err = a.GetStatus(id); err != nil {
-				status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+				status = &model.Status{
+					UserId: id,
+					Status: model.STATUS_OFFLINE,
+					Manual: false,
+					LastActivityAt: 0,
+					ActiveChannel: "",
+				}
 			}
-
+			// 是否应该推送通知
 			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
 				replyToThreadType := ""
 				if value, ok := threadMentionedUserIds[id]; ok {
 					replyToThreadType = value
 				}
-
+				// 发送通知给 user
 				a.sendPushNotification(
 					notification,
 					profileMap[id],
@@ -302,19 +343,19 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 		}
 
+
 		for _, id := range allActivityPushUserIds {
 			if profileMap[id] == nil {
 				continue
 			}
-
 			if _, ok := mentionedUserIds[id]; !ok {
 				var status *model.Status
 				var err *model.AppError
 				if status, err = a.GetStatus(id); err != nil {
 					status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 				}
-
 				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
+					// 发送通知给 user
 					a.sendPushNotification(
 						notification,
 						profileMap[id],
@@ -336,27 +377,29 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, "", nil)
 
 	// Note that PreparePostForClient should've already been called by this point
-	message.Add("post", post.ToJson())
+	//
+	// 注意，此时 PreparePostForClient 应该已经被调用了。
+	//
 
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, "", nil)
+	message.Add("post", post.ToJson())
 	message.Add("channel_type", channel.Type)
 	message.Add("channel_display_name", notification.GetChannelName(model.SHOW_USERNAME, ""))
 	message.Add("channel_name", channel.Name)
 	message.Add("sender_name", notification.GetSenderName(model.SHOW_USERNAME, *a.Config().ServiceSettings.EnablePostUsernameOverride))
 	message.Add("team_id", team.Id)
 
+	// 添加 附件信息
 	if len(post.FileIds) != 0 && fchan != nil {
 		message.Add("otherFile", "true")
-
 		var infos []*model.FileInfo
 		if result := <-fchan; result.Err != nil {
 			mlog.Warn(fmt.Sprint("Unable to get fileInfo for push notifications.", post.Id, result.Err), mlog.String("post_id", post.Id))
 		} else {
 			infos = result.Data.([]*model.FileInfo)
 		}
-
 		for _, info := range infos {
 			if info.IsImage() {
 				message.Add("image", "true")
@@ -365,11 +408,14 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
+	// 添加 @ 用户列表
 	if len(mentionedUsersList) != 0 {
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
 	}
 
+	// 广播消息到频道中
 	a.Publish(message)
+
 	return mentionedUsersList, nil
 }
 
@@ -517,6 +563,7 @@ func splitAtFinal(items []string) (preliminary []string, final string) {
 }
 
 type ExplicitMentions struct {
+
 	// MentionedUserIds contains a key for each user mentioned by keyword.
 	MentionedUserIds map[string]bool
 
@@ -534,9 +581,14 @@ type ExplicitMentions struct {
 	ChannelMentioned bool
 }
 
+
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
+//
+//
+//
 func getExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
+
 	ret := &ExplicitMentions{
 		MentionedUserIds: make(map[string]bool),
 	}
@@ -581,9 +633,16 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
 func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
+
+
+
 	keywords := make(map[string][]string)
 
+
+
 	for id, profile := range profiles {
+
+
 		userMention := "@" + strings.ToLower(profile.Username)
 		keywords[userMention] = append(keywords[userMention], id)
 
@@ -639,7 +698,13 @@ type postNotification struct {
 // Returns the name of the channel for this notification. For direct messages, this is the sender's name
 // preceeded by an at sign. For group messages, this is a comma-separated list of the members of the
 // channel, with an option to exclude the recipient of the message from that list.
+//
+// 获取通知的名称：
+// 	对于直接消息，是在发件人的名字前加一个 at 符号。
+// 	对于群组消息，是一个以逗号分隔的频道成员列表，并且将 excludeId 从该列表中排除。
+//
 func (n *postNotification) GetChannelName(userNameFormat string, excludeId string) string {
+
 	switch n.channel.Type {
 	case model.CHANNEL_DIRECT:
 		return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
@@ -650,7 +715,6 @@ func (n *postNotification) GetChannelName(userNameFormat string, excludeId strin
 				names = append(names, user.GetDisplayName(userNameFormat))
 			}
 		}
-
 		sort.Strings(names)
 
 		return strings.Join(names, ", ")
@@ -661,17 +725,18 @@ func (n *postNotification) GetChannelName(userNameFormat string, excludeId strin
 
 // Returns the name of the sender of this notification, accounting for things like system messages
 // and whether or not the username has been overridden by an integration.
+//
+// 返回该通知的发送者的名称，考虑到系统消息等因素，以及用户名是否已被重写。
 func (n *postNotification) GetSenderName(userNameFormat string, overridesAllowed bool) string {
+	// 系统消息
 	if n.post.IsSystemMessage() {
 		return utils.T("system.message.name")
 	}
-
 	if overridesAllowed && n.channel.Type != model.CHANNEL_DIRECT {
 		if value, ok := n.post.Props["override_username"]; ok && n.post.Props["from_webhook"] == "true" {
 			return value.(string)
 		}
 	}
-
 	return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
 }
 

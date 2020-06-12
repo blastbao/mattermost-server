@@ -998,6 +998,7 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 
 	a.invalidateUserChannelMembersCaches(user)
 
+	//
 	a.sendUpdatedUserEvent(*ruser)
 
 	return ruser, nil
@@ -1072,9 +1073,14 @@ func (a *App) UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.Us
 	return userAuth, nil
 }
 
+
+
+// 发送用户更新事件
 func (a *App) sendUpdatedUserEvent(user model.User) {
+
 	adminCopyOfUser := user.DeepCopy()
 	a.SanitizeProfile(adminCopyOfUser, true)
+
 	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	adminMessage.Add("user", &adminCopyOfUser)
 	adminMessage.Broadcast.ContainsSensitiveData = true

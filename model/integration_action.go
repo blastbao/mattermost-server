@@ -383,9 +383,13 @@ func (o *Post) GetAction(id string) *PostAction {
 }
 
 func (o *Post) GenerateActionIds() {
+
+	// 附件
 	if o.Props["attachments"] != nil {
 		o.Props["attachments"] = o.Attachments()
 	}
+
+	//
 	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
 		for _, attachment := range attachments {
 			for _, action := range attachment.Actions {

@@ -79,30 +79,40 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
 }
 
+
+
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	// 读取参数
 	user := model.UserFromJson(r.Body)
 	if user == nil {
 		c.SetInvalidParam("user")
 		return
 	}
 
+	// 从 user 中删除任何非用户控制的输入数据。
 	user.SanitizeInput()
 
+	// 从 url 中取出 token 和邀请码
 	tokenId := r.URL.Query().Get("t")
 	inviteId := r.URL.Query().Get("iid")
 
 	// No permission check required
 
-	var ruser *model.User
-	var err *model.AppError
+	var (
+		ruser *model.User
+	 	err *model.AppError
+	)
+
 	if len(tokenId) > 0 {
 		var token *model.Token
 		token, err = c.App.Srv.Store.Token().GetByToken(tokenId)
+		// token 不存在？
 		if err != nil {
 			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
 			return
 		}
-
+		// token 类型不对？
 		if token.Type == app.TOKEN_TYPE_GUEST_INVITATION {
 			if c.App.License() == nil {
 				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
@@ -113,25 +123,30 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+		// 根据 token 创造 user
 		ruser, err = c.App.CreateUserWithToken(user, token)
 	} else if len(inviteId) > 0 {
+		// 根据 inviteId 创造 user
 		ruser, err = c.App.CreateUserWithInviteId(user, inviteId)
 	} else if c.IsSystemAdmin() {
+		// 创建管理员
 		ruser, err = c.App.CreateUserAsAdmin(user)
 	} else {
 		ruser, err = c.App.CreateUserFromSignup(user)
 	}
 
+	// 创建用户失败，报错
 	if err != nil {
 		c.Err = err
 		return
 	}
-
+	// 创建成功，回包
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(ruser.ToJson()))
 }
 
 func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
+
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1030,6 +1045,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
+
 	c.RequireUserId()
 	if c.Err != nil {
 		return

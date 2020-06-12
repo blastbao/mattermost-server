@@ -25,6 +25,8 @@ const (
 )
 
 func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
+
+
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv.Store.Channel().Get(post.ChannelId, true)
 	if errCh != nil {
@@ -411,10 +413,15 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	return nil
 }
 
+
+// 发送临时消息给 userId
 func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
+
+	// 临时消息
 	post.Type = model.POST_EPHEMERAL
 
 	// fill in fields which haven't been specified which have sensible defaults
+	// 填入未指定的字段，设置为合理的默认值。
 	if post.Id == "" {
 		post.Id = model.NewId()
 	}
@@ -424,25 +431,23 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	if post.Props == nil {
 		post.Props = model.StringInterface{}
 	}
-
 	post.GenerateActionIds()
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
 	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
+	// 构造 `临时` 消息
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
 	message.Add("post", post.ToJson())
 	a.Publish(message)
-
 	return post
 }
 
 func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
-	post.Type = model.POST_EPHEMERAL
 
+	post.Type = model.POST_EPHEMERAL
 	post.UpdateAt = model.GetMillis()
 	if post.Props == nil {
 		post.Props = model.StringInterface{}
 	}
-
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, userId, nil)
 	post = a.PreparePostForClient(post, true, false)
@@ -454,6 +459,7 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 }
 
 func (a *App) DeleteEphemeralPost(userId, postId string) {
+
 	post := &model.Post{
 		Id:       postId,
 		UserId:   userId,
@@ -533,16 +539,21 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+
 		var rejectionReason string
 		pluginContext := a.PluginContext()
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
-			return post != nil
-		}, plugin.MessageWillBeUpdatedId)
+		pluginsEnvironment.RunMultiPluginHook(
+			func(hooks plugin.Hooks) bool {
+				newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
+				return post != nil
+			},
+			plugin.MessageWillBeUpdatedId,
+		)
 		if newPost == nil {
 			return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
 		}
 	}
+
 
 	rpost, err := a.Srv.Store.Post().Update(newPost, oldPost)
 	if err != nil {
@@ -552,10 +563,13 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
 			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
-				return true
-			}, plugin.MessageHasBeenUpdatedId)
+			pluginsEnvironment.RunMultiPluginHook(
+				func(hooks plugin.Hooks) bool {
+					hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
+					return true
+				},
+				plugin.MessageHasBeenUpdatedId,
+			)
 		})
 	}
 
