@@ -41,14 +41,15 @@ func (a *App) AddStatusCache(status *model.Status) {
 
 }
 
+// 把 statusCache 中缓存的 <uid, status> 转存到 map[string]*model.Status 中并返回。
 func (a *App) GetAllStatuses() map[string]*model.Status {
+
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return map[string]*model.Status{}
 	}
 
 	userIds := statusCache.Keys()
 	statusMap := map[string]*model.Status{}
-
 	for _, userId := range userIds {
 		if id, ok := userId.(string); ok {
 			status := GetStatusFromCache(id)
@@ -57,20 +58,24 @@ func (a *App) GetAllStatuses() map[string]*model.Status {
 			}
 		}
 	}
-
 	return statusMap
 }
 
+// 批量查询状态
 func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError) {
+
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return map[string]interface{}{}, nil
 	}
 
-	statusMap := map[string]interface{}{}
 	metrics := a.Metrics
-
+	statusMap := map[string]interface{}{}
 	missingUserIds := []string{}
+
+	// 1. 查询缓存，若存在则保存到 statusMap 中，否则保存到 missingUserIds 中。
 	for _, userId := range userIds {
+
+
 		if result, ok := statusCache.Get(userId); ok {
 			statusMap[userId] = result.(*model.Status).Status
 			if metrics != nil {
@@ -84,6 +89,7 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 		}
 	}
 
+	// 2. 对于 Cache miss 的 userIds ，回源 Store 进行查询，并回填到 Cache 和 statusMap 中。
 	if len(missingUserIds) > 0 {
 		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
 		if err != nil {
@@ -94,10 +100,11 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 			a.AddStatusCacheSkipClusterSend(s)
 			statusMap[s.UserId] = s.Status
 		}
-
 	}
 
 	// For the case where the user does not have a row in the Status table and cache
+	//
+	// 3. 若回源后，仍有部分 userIds 未能查询到状态，则默认其为离线状态。
 	for _, userId := range missingUserIds {
 		if _, ok := statusMap[userId]; !ok {
 			statusMap[userId] = model.STATUS_OFFLINE
@@ -108,6 +115,8 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 }
 
 // GetUserStatusesByIds used by apiV4
+//
+// 这个函数的逻辑同 GetStatusesByIds
 func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
 
 
@@ -115,10 +124,10 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 		return []*model.Status{}, nil
 	}
 
-	var statusMap []*model.Status
 	metrics := a.Metrics
-
+	var statusMap []*model.Status
 	missingUserIds := []string{}
+
 	for _, userId := range userIds {
 		if result, ok := statusCache.Get(userId); ok {
 			statusMap = append(statusMap, result.(*model.Status))
@@ -144,7 +153,6 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 		}
 
 		statusMap = append(statusMap, statuses...)
-
 	}
 
 	// For the case where the user does not have a row in the Status table and cache
@@ -160,6 +168,7 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 			}
 		}
 	}
+
 	for _, userId := range missingUserIds {
 		statusMap = append(statusMap, &model.Status{UserId: userId, Status: "offline"})
 	}

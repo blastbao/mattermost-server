@@ -11,12 +11,12 @@ func (api *API) InitSystem() {
 	api.Router.Handle("ping", api.ApiWebSocketHandler(ping))
 }
 
+// 收到 `ping` 时回复 `pong`，并附带一组服务状态信息。
 func ping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	data := map[string]interface{}{}
 	data["text"] = "pong"
 	data["version"] = model.CurrentVersion
 	data["server_time"] = model.GetMillis()
 	data["node_id"] = ""
-
 	return data, nil
 }

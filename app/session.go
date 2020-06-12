@@ -24,11 +24,14 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 	return session, nil
 }
 
-func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
-	metrics := a.Metrics
 
+func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
+
+	metrics := a.Metrics
 	var session *model.Session
 	var err *model.AppError
+
+	// 1. 查询缓存
 	if ts, ok := a.Srv.sessionCache.Get(token); ok {
 		session = ts.(*model.Session)
 		if metrics != nil {
@@ -40,13 +43,15 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
+	// 2. 回源 Store
 	if session == nil {
 		if session, err = a.Srv.Store.Session().Get(token); err == nil {
 			if session != nil {
+				// 检查 Token 是否匹配
 				if session.Token != token {
 					return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "", http.StatusUnauthorized)
 				}
-
+				// 未过期，更新缓存
 				if !session.IsExpired() {
 					a.AddSessionToCache(session)
 				}
@@ -56,6 +61,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
+	// 3. 回源失败，则创建 session
 	if session == nil {
 		session, err = a.createSessionForUserAccessToken(token)
 		if err != nil {
@@ -69,24 +75,31 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
+	// 4. 若 session 已经过期，或者 session 不存在且创建失败，则报错
 	if session == nil || session.IsExpired() {
 		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, "", http.StatusUnauthorized)
 	}
 
+	// 5. 超时检查
 	if session != nil &&
 		*a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
 		!session.IsOAuth &&
 		session.Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_USER_ACCESS_TOKEN {
-
 		timeout := int64(*a.Config().ServiceSettings.SessionIdleTimeoutInMinutes) * 1000 * 60
+		// 若 session 已超时，则清理并报错
 		if (model.GetMillis() - session.LastActivityAt) > timeout {
 			a.RevokeSessionById(session.Id)
 			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, "idle timeout", http.StatusUnauthorized)
 		}
 	}
 
+	//
 	return session, nil
 }
+
+
+
+
 
 func (a *App) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 
@@ -316,6 +329,8 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 }
 
 func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Session, *model.AppError) {
+
+
 	token, err := a.Srv.Store.UserAccessToken().GetByToken(tokenString)
 	if err != nil {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, err.Error(), http.StatusUnauthorized)
@@ -347,14 +362,17 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 
 	session.AddProp(model.SESSION_PROP_USER_ACCESS_TOKEN_ID, token.Id)
 	session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_USER_ACCESS_TOKEN)
+
 	if user.IsBot {
 		session.AddProp(model.SESSION_PROP_IS_BOT, model.SESSION_PROP_IS_BOT_VALUE)
 	}
+
 	if user.IsGuest() {
 		session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
 	} else {
 		session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
 	}
+
 	session.SetExpireInDays(model.SESSION_USER_ACCESS_TOKEN_EXPIRY)
 
 	session, err = a.Srv.Store.Session().Save(session)

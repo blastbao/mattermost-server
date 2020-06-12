@@ -119,6 +119,8 @@ func AppErrorFromJson(data io.Reader) *AppError {
 	}
 }
 
+
+
 func NewAppError(where string, id string, params map[string]interface{}, details string, status int) *AppError {
 	ap := &AppError{}
 	ap.Id = id
@@ -254,6 +256,7 @@ func ArrayFromJson(data io.Reader) []string {
 }
 
 func ArrayFromInterface(data interface{}) []string {
+
 	stringArray := []string{}
 
 	dataArray, ok := data.([]interface{})

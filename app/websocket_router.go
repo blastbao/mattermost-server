@@ -21,10 +21,12 @@ type WebSocketRouter struct {
 	handlers map[string]webSocketHandler
 }
 
+// 注册
 func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 	wr.handlers[action] = handler
 }
 
+// 请求处理
 func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
 
 	// 检查 action 合法性
@@ -43,6 +45,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 
 	// ???
 	if r.Action == model.WEBSOCKET_AUTHENTICATION_CHALLENGE {
+
 		if conn.GetSessionToken() != "" {
 			return
 		}
@@ -96,6 +99,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 }
 
 func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
+
 	mlog.Error(fmt.Sprintf("websocket routing error: seq=%v uid=%v %v [details: %v]", r.Seq, conn.UserId, err.SystemMessage(utils.T), err.DetailedError))
 
 	err.DetailedError = ""

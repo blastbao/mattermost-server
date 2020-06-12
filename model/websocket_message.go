@@ -187,10 +187,15 @@ func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
 	return o
 }
 
+
 type WebSocketResponse struct {
+	// 状态码
 	Status   string                 `json:"status"`
+	// 指明回复的请求包序号 req.Seq
 	SeqReply int64                  `json:"seq_reply,omitempty"`
+	// 响应数据
 	Data     map[string]interface{} `json:"data,omitempty"`
+	// 错误信息
 	Error    *AppError              `json:"error,omitempty"`
 }
 

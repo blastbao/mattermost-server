@@ -72,6 +72,7 @@ func StatusMapToInterfaceMap(statusMap map[string]*Status) map[string]interface{
 	interfaceMap := map[string]interface{}{}
 	for _, s := range statusMap {
 		// Omitted statues mean offline
+		// 滤除离线状态
 		if s.Status != STATUS_OFFLINE {
 			interfaceMap[s.UserId] = s.Status
 		}

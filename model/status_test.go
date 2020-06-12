@@ -12,7 +12,15 @@ import (
 )
 
 func TestStatus(t *testing.T) {
-	status := Status{NewId(), STATUS_ONLINE, true, 0, "123"}
+
+	status := Status{
+		NewId(),
+		STATUS_ONLINE,
+		true,
+		0,
+		"123",
+	}
+
 	json := status.ToJson()
 	status2 := StatusFromJson(strings.NewReader(json))
 
@@ -41,9 +49,24 @@ func TestStatus(t *testing.T) {
 }
 
 func TestStatusListToJson(t *testing.T) {
-	statuses := []*Status{{NewId(), STATUS_ONLINE, true, 0, "123"}, {NewId(), STATUS_OFFLINE, true, 0, ""}}
-	jsonStatuses := StatusListToJson(statuses)
+	statuses := []*Status{
+		{
+			NewId(),
+			STATUS_ONLINE,
+			true,
+			0,
+			"123",
+		},
+		{
+			NewId(),
+			STATUS_OFFLINE,
+			true,
+			0,
+			"",
+		},
+	}
 
+	jsonStatuses := StatusListToJson(statuses)
 	var dat []map[string]interface{}
 	if err := json.Unmarshal([]byte(jsonStatuses), &dat); err != nil {
 		panic(err)

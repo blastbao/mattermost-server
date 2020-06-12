@@ -14,17 +14,22 @@ func (api *API) InitStatus() {
 }
 
 func (api *API) getStatuses(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	// 把 statusCache 中的 <uid, status> 转存到 map[string]*model.Status 中并返回。
 	statusMap := api.App.GetAllStatuses()
+	// 从 map[string]*model.Status 中移除 "offline" 的 status
 	return model.StatusMapToInterfaceMap(statusMap), nil
 }
 
 func (api *API) getStatusesByIds(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var userIds []string
+
+	// 取参数
 	if userIds = model.ArrayFromInterface(req.Data["user_ids"]); len(userIds) == 0 {
 		mlog.Error(model.StringInterfaceToJson(req.Data))
 		return nil, NewInvalidWebSocketParamError(req.Action, "user_ids")
 	}
 
+	// 批量查询状态
 	statusMap, err := api.App.GetStatusesByIds(userIds)
 	if err != nil {
 		return nil, err

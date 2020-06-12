@@ -7,6 +7,7 @@ import (
 	"github.com/blastbao/mattermost-server/model"
 )
 
+// 注册处理函数
 func (api *API) InitUser() {
 	api.Router.Handle("user_typing", api.ApiWebSocketHandler(api.userTyping))
 	api.Router.Handle("user_update_active_status", api.ApiWebSocketHandler(api.userUpdateActiveStatus))
