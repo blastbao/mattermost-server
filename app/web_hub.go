@@ -51,6 +51,8 @@ type Hub struct {
 
 	// 强制退出标识
 	ExplicitStop    bool
+
+	//
 	goroutineId     int
 }
 
@@ -112,6 +114,7 @@ func (a *App) HubStart() {
 
 					// 死锁预警？
 					if len(hub.broadcast) >= DEADLOCK_WARN {
+
 						mlog.Error(fmt.Sprintf("Hub processing might be deadlock on hub %v goroutine %v with %v events in the buffer", hub.connectionIndex, hub.goroutineId, len(hub.broadcast)))
 
 						// 获取堆栈，追踪可能死锁的协程
@@ -193,8 +196,8 @@ func (a *App) HubUnregister(webConn *WebConn) {
 	}
 }
 
-func (a *App) Publish(message *model.WebSocketEvent) {
 
+func (a *App) Publish(message *model.WebSocketEvent) {
 
 
 	// 统计上报
@@ -202,9 +205,8 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 		metrics.IncrementWebsocketEvent(message.Event)
 	}
 
-	// 发送广播消息
+	// 广播消息：将 message 发送到每一个 hub 中
 	a.PublishSkipClusterSend(message)
-
 
 	// 发送集群消息
 	if a.Cluster != nil {
@@ -228,21 +230,25 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 		// 发送集群消息
 		a.Cluster.SendClusterMessage(cm)
 	}
+
+
+	// ...
 }
 
 
 // 发送广播消息
 func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
+
 	// 如果广播消息指定了发送的目标 user
 	if message.Broadcast.UserId != "" {
-		// 获取 user 所在的 hub，把广播消息推送到该 hub 中
+		// 获取 user 所在的 hub，把消息 message 推送到该 hub 中
 		hub := a.GetHubForUserId(message.Broadcast.UserId)
 		if hub != nil {
 			hub.Broadcast(message)
 		}
 	// 否则
 	} else {
-		// 把光波消息发送到每一个 hub 中。
+		// 把消息 message 发送到每一个 hub 中
 		for _, hub := range a.Srv.Hubs {
 			hub.Broadcast(message)
 		}
@@ -451,7 +457,6 @@ func (h *Hub) Unregister(webConn *WebConn) {
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 
 	if h != nil && h.broadcast != nil && message != nil {
-
 		select {
 		case h.broadcast <- message: //把广播消息写入管道，Start() 协程中会接收和处理。
 		case <-h.didStop:

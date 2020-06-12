@@ -35,7 +35,9 @@ type App struct {
 
 	AccountMigration einterfaces.AccountMigrationInterface
 
+
 	Cluster          einterfaces.ClusterInterface
+
 
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface

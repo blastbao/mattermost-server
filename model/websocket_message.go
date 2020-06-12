@@ -15,7 +15,9 @@ import (
 
 
 const (
+	// 用户正在输入中
 	WEBSOCKET_EVENT_TYPING                  = "typing"
+	//
 	WEBSOCKET_EVENT_POSTED                  = "posted"
 	WEBSOCKET_EVENT_POST_EDITED             = "post_edited"
 	WEBSOCKET_EVENT_POST_DELETED            = "post_deleted"
@@ -41,6 +43,7 @@ const (
 	WEBSOCKET_EVENT_PREFERENCES_CHANGED     = "preferences_changed"
 	WEBSOCKET_EVENT_PREFERENCES_DELETED     = "preferences_deleted"
 	WEBSOCKET_EVENT_EPHEMERAL_MESSAGE       = "ephemeral_message"
+	// 用户在线状态变化
 	WEBSOCKET_EVENT_STATUS_CHANGE           = "status_change"
 	WEBSOCKET_EVENT_HELLO                   = "hello"
 	WEBSOCKET_AUTHENTICATION_CHALLENGE      = "authentication_challenge"
@@ -99,12 +102,15 @@ type precomputedWebSocketEventJSON struct {
 	Broadcast json.RawMessage
 }
 
+
+
+
 type WebSocketEvent struct {
 
-	//
+	// 事件标识符
 	Event     string                 `json:"event"`
 
-	// key - value
+	// 参数
 	Data      map[string]interface{} `json:"data"`
 
 	// 广播消息
@@ -119,8 +125,10 @@ type WebSocketEvent struct {
 
 // PrecomputeJSON precomputes and stores the serialized JSON for all fields other than Sequence.
 // This makes ToJson much more efficient when sending the same event to multiple connections.
+//
 // PrecomputeJSON() 预先计算并存储除 Sequence 之外的所有字段的序列化后的 JSON 数据。
 // 这使得 m.ToJson() 被多次复用时更加高效。
+//
 func (m *WebSocketEvent) PrecomputeJSON() {
 	// 预先将 Event、Data、Broadcast 三个字段的 json.Marshal 值计算并存储到 precomputedJSON 字段上。
 	event, _ := json.Marshal(m.Event)
@@ -138,6 +146,8 @@ func (m *WebSocketEvent) Add(key string, value interface{}) {
 }
 
 
+
+//
 func NewWebSocketEvent(event, teamId, channelId, userId string, omitUsers map[string]bool) *WebSocketEvent {
 	return &WebSocketEvent{
 		Event: event,

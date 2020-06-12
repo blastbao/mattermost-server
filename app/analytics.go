@@ -31,30 +31,35 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 	if name == "standard" {
 		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 11)
-		rows[0] = &model.AnalyticsRow{Name: "channel_open_count", Value: 0}
-		rows[1] = &model.AnalyticsRow{Name: "channel_private_count", Value: 0}
-		rows[2] = &model.AnalyticsRow{Name: "post_count", Value: 0}
-		rows[3] = &model.AnalyticsRow{Name: "unique_user_count", Value: 0}
-		rows[4] = &model.AnalyticsRow{Name: "team_count", Value: 0}
-		rows[5] = &model.AnalyticsRow{Name: "total_websocket_connections", Value: 0}
-		rows[6] = &model.AnalyticsRow{Name: "total_master_db_connections", Value: 0}
-		rows[7] = &model.AnalyticsRow{Name: "total_read_db_connections", Value: 0}
-		rows[8] = &model.AnalyticsRow{Name: "daily_active_users", Value: 0}
-		rows[9] = &model.AnalyticsRow{Name: "monthly_active_users", Value: 0}
+		rows[0]  = &model.AnalyticsRow{Name: "channel_open_count", Value: 0}
+		rows[1]  = &model.AnalyticsRow{Name: "channel_private_count", Value: 0}
+		rows[2]  = &model.AnalyticsRow{Name: "post_count", Value: 0}
+		rows[3]  = &model.AnalyticsRow{Name: "unique_user_count", Value: 0}
+		rows[4]  = &model.AnalyticsRow{Name: "team_count", Value: 0}
+		rows[5]  = &model.AnalyticsRow{Name: "total_websocket_connections", Value: 0}
+		rows[6]  = &model.AnalyticsRow{Name: "total_master_db_connections", Value: 0}
+		rows[7]  = &model.AnalyticsRow{Name: "total_read_db_connections", Value: 0}
+		rows[8]  = &model.AnalyticsRow{Name: "daily_active_users", Value: 0}
+		rows[9]  = &model.AnalyticsRow{Name: "monthly_active_users", Value: 0}
 		rows[10] = &model.AnalyticsRow{Name: "inactive_user_count", Value: 0}
 
-		openChan := make(chan store.StoreResult, 1)
+
+
+		openChan    := make(chan store.StoreResult, 1)
 		privateChan := make(chan store.StoreResult, 1)
+
 		go func() {
 			count, err := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 			openChan <- store.StoreResult{Data: count, Err: err}
 			close(openChan)
 		}()
+
 		go func() {
 			count, err := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
 			privateChan <- store.StoreResult{Data: count, Err: err}
 			close(privateChan)
 		}()
+
 
 		var userChan chan store.StoreResult
 		var userInactiveChan chan store.StoreResult

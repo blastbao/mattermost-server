@@ -19,7 +19,7 @@ type Workers struct {
 
 	ConfigService configservice.ConfigService
 
-	Watcher       *Watcher
+	        *Watcher
 
 
 	DataRetention            model.Worker

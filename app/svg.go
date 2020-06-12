@@ -37,15 +37,19 @@ func parseSVG(svgReader io.Reader) (SVGInfo, error) {
 
 	// prefer viewbox for SVG dimensions over width/height
 	if viewBoxMatches := viewBoxPattern.FindStringSubmatch(parsedSVG.ViewBox); len(viewBoxMatches) == 5 {
+
 		svgInfo.Width, _ = strconv.Atoi(viewBoxMatches[3])
 		svgInfo.Height, _ = strconv.Atoi(viewBoxMatches[4])
+
 	} else if len(parsedSVG.Width) > 0 && len(parsedSVG.Height) > 0 {
+
 		widthMatches := dimensionPattern.FindStringSubmatch(parsedSVG.Width)
 		heightMatches := dimensionPattern.FindStringSubmatch(parsedSVG.Height)
 		if len(widthMatches) == 2 && len(heightMatches) == 2 {
 			svgInfo.Width, _ = strconv.Atoi(widthMatches[1])
 			svgInfo.Height, _ = strconv.Atoi(heightMatches[1])
 		}
+
 	}
 
 	// if width and/or height are still zero, create new error

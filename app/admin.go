@@ -186,8 +186,8 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 	// if the user hasn't changed their email settings, fill in the actual SMTP password so that
 	// the user can verify an existing SMTP connection
 	if *cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
-		if *cfg.EmailSettings.SMTPServer == *a.Config().EmailSettings.SMTPServer &&
-			*cfg.EmailSettings.SMTPPort == *a.Config().EmailSettings.SMTPPort &&
+		if  *cfg.EmailSettings.SMTPServer   == *a.Config().EmailSettings.SMTPServer &&
+			*cfg.EmailSettings.SMTPPort     == *a.Config().EmailSettings.SMTPPort &&
 			*cfg.EmailSettings.SMTPUsername == *a.Config().EmailSettings.SMTPUsername {
 			*cfg.EmailSettings.SMTPPassword = *a.Config().EmailSettings.SMTPPassword
 		} else {

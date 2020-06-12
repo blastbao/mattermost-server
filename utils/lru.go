@@ -13,9 +13,11 @@ import (
 	"time"
 )
 
+
 // Cache is a thread-safe fixed size LRU cache.
 type Cache struct {
 	size                   int
+	// 实现 LRU 需要一个 map + list 的组合
 	evictList              *list.List
 	items                  map[interface{}]*list.Element
 	lock                   sync.RWMutex
