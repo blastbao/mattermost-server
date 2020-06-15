@@ -245,12 +245,15 @@ func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*mo
 }
 
 func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
-	authHeader := r.Header.Get(model.HEADER_AUTH)
 
 	// Attempt to parse the token from the cookie
+	// 读取 "MMAUTHTOKEN" 的 cookie
 	if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
 		return cookie.Value, TokenLocationCookie
 	}
+
+	// 读取 "Authorization" 头
+	authHeader := r.Header.Get(model.HEADER_AUTH)
 
 	// Parse the token from the header
 	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HEADER_BEARER {
@@ -264,6 +267,7 @@ func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
 	}
 
 	// Attempt to parse token out of the query string
+	// 尝试从 url 中解析 "access_token" 参数
 	if token := r.URL.Query().Get("access_token"); token != "" {
 		return token, TokenLocationQueryString
 	}

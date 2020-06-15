@@ -56,6 +56,7 @@ type Handler struct {
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
 	now := time.Now()
 	mlog.Debug(fmt.Sprintf("%v - %v", r.Method, r.URL.Path))
 
@@ -63,8 +64,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
-	c.App.T, _ = utils.GetTranslationsAndLocale(w, r)
-	c.App.RequestId = model.NewId()
+	c.App.T, _ = utils.GetTranslationsAndLocale(w, r) // 多语言
+	c.App.RequestId = model.NewId()	// 生成 uuid
 	c.App.IpAddress = utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader)
 	c.App.UserAgent = r.UserAgent()
 	c.App.AcceptLanguage = r.Header.Get("Accept-Language")
@@ -85,16 +86,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if h.IsStatic {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
+		// 指示浏览器不要在 iframe 中显示我们，除非是同一来源的反点击劫持。
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
+		// 设置内容安全策略。这也是在 webapp 的 root.html 的 meta 标签中指定的。
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
 			"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/%s",
 			h.cspShaDirective,
 		))
 	} else {
 		// All api response bodies will be JSON formatted by default
+		// 所有 api 响应数据默认为JSON格式。
 		w.Header().Set("Content-Type", "application/json")
-
 		if r.Method == "GET" {
 			w.Header().Set("Expires", "0")
 		}
@@ -188,7 +191,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.App.Metrics != nil {
 		c.App.Metrics.IncrementHttpRequest()
-
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
 			c.App.Metrics.ObserveHttpRequestDuration(elapsed)

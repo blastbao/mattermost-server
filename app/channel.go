@@ -16,24 +16,40 @@ import (
 	"github.com/blastbao/mattermost-server/utils"
 )
 
+
+
+
 // CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
 //
 func (a *App) CreateDefaultChannels(teamID string) ([]*model.Channel, *model.AppError) {
+
 	displayNames := map[string]string{
 		"town-square": utils.T("api.channel.create_default_channels.town_square"),
 		"off-topic":   utils.T("api.channel.create_default_channels.off_topic"),
 	}
+
 	channels := []*model.Channel{}
 	defaultChannelNames := a.DefaultChannelNames()
 	for _, name := range defaultChannelNames {
+
 		displayName := utils.TDefault(displayNames[name], name)
-		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.CHANNEL_OPEN, TeamId: teamID}
+
+		channel := &model.Channel{
+			DisplayName: displayName,
+			Name: name,
+			Type: model.CHANNEL_OPEN,
+			TeamId: teamID,
+		}
+
 		if _, err := a.CreateChannel(channel, false); err != nil {
 			return nil, err
 		}
+
 		channels = append(channels, channel)
+
 	}
 	return channels, nil
+
 }
 
 // DefaultChannelNames returns the list of system-wide default channel names.

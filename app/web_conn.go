@@ -26,6 +26,7 @@ const (
 	WEBCONN_MEMBER_CACHE_TIME = 1000 * 60 * 30 // 30 minutes
 )
 
+
 type WebConn struct {
 	// 过期时间
 	sessionExpiresAt          int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
@@ -393,7 +394,6 @@ func (webCon *WebConn) SendHello() {
 func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session
 
-
 	// 鉴权检查
 	if !webCon.IsAuthenticated() {
 		return false
@@ -404,8 +404,6 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// Prevents admin clients from receiving events with bad data.
 
 	var hasReadPrivateDataPermission *bool
-
-
 	if msg.Broadcast.ContainsSanitizedData {
 		hasReadPrivateDataPermission = model.NewBool(webCon.App.RolesGrantPermission(webCon.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
 		if *hasReadPrivateDataPermission {

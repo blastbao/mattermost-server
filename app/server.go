@@ -160,6 +160,8 @@ type Server struct {
 }
 
 func NewServer(options ...Option) (*Server, error) {
+
+
 	rootRouter := mux.NewRouter()
 
 	s := &Server{
@@ -170,6 +172,7 @@ func NewServer(options ...Option) (*Server, error) {
 		seenPendingPostIdsCache: utils.NewLru(PENDING_POST_IDS_CACHE_SIZE),
 		clientConfig:            make(map[string]string),
 	}
+
 	for _, option := range options {
 		if err := option(s); err != nil {
 			return nil, errors.Wrap(err, "failed to apply option")
@@ -181,7 +184,6 @@ func NewServer(options ...Option) (*Server, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
-
 		s.configStore = configStore
 	}
 
@@ -191,8 +193,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if s.NotificationsLog == nil {
 		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
-		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
-			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
+		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
 	}
 
 	// Redirect default golang logger to this logger
@@ -203,15 +204,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
 		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings, utils.GetLogFileLocation))
-
 		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&after.NotificationLogSettings)
 		s.NotificationsLog.ChangeLevels(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation))
 	})
 
 	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
-
 	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
-
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
@@ -277,10 +275,12 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error(fmt.Sprint("Error to reset the server status.", err.Error()))
 	}
 
+	//
 	if s.joinCluster && s.Cluster != nil {
 		s.FakeApp().RegisterAllClusterMessageHandlers()
 		s.Cluster.StartInterNodeCommunication()
 	}
+
 
 	if s.startMetrics && s.Metrics != nil {
 		s.Metrics.StartServer()

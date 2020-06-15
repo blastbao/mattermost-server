@@ -17,6 +17,9 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+
+
+
 	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles()})
 	require.Nil(t, err)
 
