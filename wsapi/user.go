@@ -40,6 +40,7 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{},
 	// 执行广播
 	api.App.Publish(event)
 
+	
 	return nil, nil
 }
 
